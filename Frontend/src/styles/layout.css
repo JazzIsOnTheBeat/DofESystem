@@ -1,0 +1,9 @@
+
+.layout {
+	margin-left: var(--sidebar-width, 260px);
+	margin-top: var(--header-height, 64px);
+	padding: 32px;
+	min-height: calc(100vh - var(--header-height, 64px));
+	background-color: transparent;
+}
+

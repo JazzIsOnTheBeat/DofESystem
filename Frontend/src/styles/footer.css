@@ -1,0 +1,31 @@
+.footer {
+    position: fixed;
+    left: var(--sidebar-width, 260px);
+    right: 0;
+    bottom: 0;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    background: rgba(255,255,255,0.9);
+    border-top: 1px solid rgba(15,23,42,0.04);
+    box-shadow: 0 -6px 18px rgba(12,20,30,0.03);
+    z-index: 1;
+}
+
+.footer-text {
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.footer-meta {
+    position: absolute;
+    right: 18px;
+    top: 8px;
+}
+
+.footer-icon {
+    color: #ef4444;
+    opacity: 0.9;
+}
