@@ -6,4 +6,3 @@
 	min-height: calc(100vh - var(--header-height, 64px));
 	background-color: transparent;
 }
-

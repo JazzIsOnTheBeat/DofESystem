@@ -1,0 +1,82 @@
+/* Members layout - flex-based cards */
+.members-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 18px;
+    justify-content: center;
+}
+
+.member-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 0 0 30%;
+    border: 1px solid #e5e7eb;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfbff 100%);
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    transition: all 0.2s ease-in-out;
+}
+
+.member-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+    border: #6366f1 1px solid;
+}
+
+.member-avatar {
+    text-transform: uppercase;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #6366f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 20px;
+    flex: 0 0 64px;
+    box-shadow: 0 6px 14px rgba(99, 102, 241, 0.08) inset;
+    transition: all 0.2s ease-in-out;
+}
+
+.member-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.member-name {
+    font-weight: 800;
+    color: #0b1220;
+    font-size: 16px;
+    line-height: 1.2;
+    text-transform: capitalize;
+}
+
+.member-role {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 6px;
+    text-transform: capitalize;
+}
+
+/* responsive: narrow screens -> two columns or single */
+@media (max-width: 720px) {
+    .member-card {
+        flex: 0 0 48%;
+    }
+}
+
+@media (max-width: 420px) {
+    .member-card {
+        flex: 0 0 100%;
+    }
+
+    .members-grid {
+        gap: 12px;
+    }
+}

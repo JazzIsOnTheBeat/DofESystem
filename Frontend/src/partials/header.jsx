@@ -3,8 +3,6 @@ import { Sparkles, Bell, User } from 'lucide-react';
 import { useState, useRef, useEffect, useContext } from 'react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import ProfileDropdown from '../components/ProfileDropdown';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthProvider';
 
 const Header = () => {
     const [showNotif, setShowNotif] = useState(false);
@@ -30,14 +28,12 @@ const Header = () => {
         { title: 'Pengajuan anggota baru', time: '1 hari lalu' },
     ];
 
-    const { logout, user } = useContext(AuthContext)
-    const navigate = useNavigate()
 
     return (
         <header className="header">
             <div className="header-inner">
                 <Sparkles className="icon" size={20} />
-                <h1>DofE Project</h1>
+                <h1>DofE Management System</h1>
             </div>
 
             <div className="header-actions">
@@ -50,10 +46,10 @@ const Header = () => {
 
                 <div className="profile-wrap" ref={profileRef}>
                     <button className="profile-btn" aria-label="Profile" onClick={(e) => { e.stopPropagation(); setShowProfile(s => !s); }}>
-                        <div className="avatar">{user && user.username ? user.username.charAt(0).toUpperCase() : 'D'}</div>
-                        <span className="profile-name">{user && user.username ? user.username : 'Dummy'}</span>
+                        <div className="avatar">D</div>
+                        <span className="profile-name">Dummy</span>
                     </button>
-                    {showProfile && <ProfileDropdown onLogout={() => { logout(); setShowProfile(false); navigate('/login'); }} />}
+                    {showProfile && <ProfileDropdown />}
                 </div>
             </div>
         </header>
