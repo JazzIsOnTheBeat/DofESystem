@@ -16,6 +16,16 @@
     z-index: 2;
 }
 
+.sidebar-title {
+	font-size: 1.25rem;
+	font-weight: 700;
+	margin-bottom: 24px;
+	color: #0f172a;
+	padding-bottom: 50px;
+	line-height:2;
+	vertical-align: middle;
+}
+
 .sidebar h2 {
 	font-size: 0.95rem;
 	margin-bottom: 14px;

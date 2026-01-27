@@ -80,3 +80,36 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Simple login page styles */
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 2rem;
+}
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.08);
+  background: white;
+}
+.login-card h2 {
+  margin-bottom: 1rem;
+}
+.login-card form label {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+.login-card input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+}
+.login-card .error { color: #b91c1c; margin: 0.5rem 0 }
+

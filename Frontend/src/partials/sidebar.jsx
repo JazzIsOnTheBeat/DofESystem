@@ -1,11 +1,12 @@
 import '../styles/sidebar.css';
 import { Home, Wallet, Settings, Users } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { Ribbon } from 'lucide-react';
 
 const Sidebar = () => {
     return (
         <aside className="sidebar">
-            <h2>DofE Awards ST Bhinneka</h2>
+            <h2 className='sidebar-title'>Sidebar Title nya Nanti</h2>
             <nav className="nav">
                 <ul>
                     <li className="nav-item">
