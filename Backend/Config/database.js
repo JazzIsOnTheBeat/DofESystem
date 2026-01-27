@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize";
 
-const sequelize = new Sequelize('DofE_DB', 'frendi', 'frendi123', {
+const db = new Sequelize('DofE_DB', 'frendi', 'frendi123', {
     host : "146.190.96.16",
     dialect : "mysql",
     logging : false,
@@ -10,4 +10,4 @@ const sequelize = new Sequelize('DofE_DB', 'frendi', 'frendi123', {
     }
 });
 
-export default sequelize;
+export default db;

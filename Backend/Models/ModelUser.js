@@ -18,7 +18,7 @@ const Users = db.define(
             allowNull: false
         },
         role: {
-            type: DataTypes.ENUM('bendahara', 'anggota'),
+            type: DataTypes.ENUM('ketua', 'wakilKetua', 'sekretaris', 'admin','bendahara', 'anggota'),
             allowNull: true,
             defaultValue: "anggota"
         },
