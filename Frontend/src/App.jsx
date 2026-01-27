@@ -3,19 +3,19 @@ import Sidebar from './partials/sidebar';
 import Header from  './partials/header';
 import Footer from './partials/footer';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import Home from './pages/Home';
-import Cash from './pages/Cash';
-import Members from './pages/Members';
-import Settings from './pages/Settings';
-import Login from './pages/Login';
+import Home from './pages/home';
+import Cash from './pages/cash';
+import Members from './pages/members';
+import Settings from './pages/settings';
+import Login from './pages/login';
 import RequireAuth from './components/RequireAuth';
 
 function App() {
-  const location = useLocation();
-  const isLogin = location.pathname === '/login';
+  const location = useLocation()
+  const isLogin = location.pathname === '/login'
 
   return (
-    <div className="App">
+    <div className={`App ${isLogin ? 'no-sidebar' : ''}`}>
       {!isLogin && <Sidebar />}
       <div className="main-content">
         {!isLogin && <Header />}

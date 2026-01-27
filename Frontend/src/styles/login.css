@@ -1,0 +1,280 @@
+/* Minimal login styles */
+
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6vh 20px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7f9ff 55%);
+}
+
+.compact-card {
+    width: min(920px, 94vw);
+    min-height: 520px;
+    padding: 36px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), #fbfdff);
+    box-shadow: 0 32px 100px rgba(12, 20, 30, 0.12);
+    border: 1px solid rgba(15, 23, 42, 0.045);
+    position: relative;
+    overflow: hidden;
+}
+/* Split layout container */
+.login-page.split { padding: 4vh 16px }
+.login-split { width: min(1100px, 96vw); display:flex; gap:32px; align-items:stretch }
+
+.login-side {
+    flex: 1 1 52%;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.14), rgba(99,102,241,0.04));
+    padding: 48px 40px;
+    display:flex; align-items:center;
+}
+.side-inner { max-width: 420px }
+.brand-lg { width:84px; height:84px; border-radius:14px; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg,#eef2ff,#eef6ff); font-weight:800; color:#111827; font-size:1.2rem; margin-bottom:18px }
+.side-title { margin:0 0 8px 0; font-size:1.6rem; color:#07103a }
+.side-desc { margin:0; color:#253048; opacity:0.9 }
+
+.login-panel { flex: 0 0 420px; display:flex; align-items:center; justify-content:center }
+.panel-card { width:100%; padding:32px; border-radius:12px; background: #ffffff; box-shadow: 0 24px 60px rgba(12,20,30,0.08); border:1px solid rgba(15,23,42,0.04) }
+.panel-title { margin:0 0 12px 0; font-size:1.125rem; font-weight:700 }
+
+.card-head {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    margin-bottom: 18px
+}
+
+.brand-sm {
+    width: 72px;
+    height: 72px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #eef2ff, #eef6ff);
+    font-weight: 800;
+    color: #111827;
+    font-size: 1.15rem
+}
+
+.title {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: #6b7280
+}
+
+.compact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px
+}
+
+.field-input {
+    width: 100%;
+    padding: 16px 16px;
+    border-radius: 12px;
+    border: 1px solid #eef2ff;
+    background: #fbfdff;
+    font-size: 1rem;
+    transition: all 1000ms cubic-bezier(.2,.9,.2,1);
+}
+
+.field-input:focus {
+    outline: none;
+    border-color: #c7d2fe;
+    box-shadow: 0 16px 44px rgba(99, 102, 241, 0.10)
+}
+
+.btn-primary.full {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #6366f1, #535bf2);
+    color: white;
+    border: none;
+    font-weight: 800;
+    font-size: 1rem
+}
+
+.compact-helper {
+    margin-top: 16px;
+    font-size: 0.95rem;
+    color: #6b7280;
+    text-align: center
+}
+
+.error {
+    color: #b91c1c;
+    margin: 10px 0;
+    text-align: center
+}
+
+.row-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px
+}
+
+.remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+    font-size: 0.9rem
+}
+
+.show-pass {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 6px
+}
+
+.btn-primary.full[disabled] {
+    opacity: 0.75;
+    cursor: not-allowed
+}
+
+.spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.25);
+    border-top-color: rgba(255, 255, 255, 0.95);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+@media (max-width: 720px) {
+    .compact-card {
+        width: 96%;
+        padding: 18px;
+        min-height: auto
+    }
+
+    .brand-sm {
+        width: 54px;
+        height: 54px
+    }
+
+    .title {
+        font-size: 1.05rem
+    }
+
+    .field-input {
+        padding: 12px
+    }
+
+    .btn-primary.full {
+        padding: 12px
+    }
+}
+
+/* Decorative background shapes to make UI richer without extra markup */
+.login-page::before,
+.login-page::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.login-page::before {
+    width: 520px;
+    height: 520px;
+    right: 8%;
+    top: -8%;
+    background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.12), transparent 40%), radial-gradient(circle at 70% 70%, rgba(99, 102, 241, 0.06), transparent 60%);
+    filter: blur(28px);
+}
+
+.login-page::after {
+    width: 420px;
+    height: 420px;
+    left: 6%;
+    bottom: -6%;
+    background: radial-gradient(circle at 50% 40%, rgba(99, 102, 241, 0.06), transparent 50%);
+    filter: blur(36px);
+}
+
+/* Inner decorative panel inside the card (visual split) */
+.compact-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 42%;
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.06), rgba(99, 102, 241, 0.02));
+    border-right: 1px solid rgba(15, 23, 42, 0.02);
+}
+
+.compact-card .card-head,
+.compact-card .compact-form,
+.compact-card .helper {
+    position: relative;
+    z-index: 2
+}
+
+/* Adjust layout so form sits to the right of decorative panel */
+.compact-card .card-head {
+    margin-left: 44%;
+}
+
+.compact-card .compact-form {
+    margin-left: 44%;
+}
+
+.compact-card .helper {
+    margin-left: 44%;
+}
+
+@media (max-width: 720px) {
+    .compact-card::before {
+        display: none
+    }
+
+    .compact-card .card-head {
+        margin-left: 0
+    }
+
+    .compact-card .compact-form {
+        margin-left: 0
+    }
+
+    .compact-card .helper {
+        margin-left: 0
+    }
+}
+ .form-actions-row { margin-top:6px }
+
+ @media (max-width: 920px) {
+   .login-split { flex-direction: column; gap:20px }
+   .login-side { padding:28px }
+   .login-panel { flex: 1 1 auto }
+   .panel-card { padding:22px }
+ }
+
+ @media (max-width: 520px) {
+   .brand-lg { width:64px; height:64px }
+   .side-title { font-size:1.15rem }
+ }

@@ -59,6 +59,24 @@
   min-height: calc(100vh - var(--header-height));
 }
 
+/* When hiding the sidebar (eg. on login) remove left offset so content centers */
+.no-sidebar .main-content {
+  margin-left: 0;
+  width: 100%;
+}
+
+/* safety: hide sidebar if present under no-sidebar */
+.no-sidebar .sidebar { display: none }
+
+/* When on login (no-sidebar) center the inner content area so login card doesn't sit to the left */
+.no-sidebar .content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  min-height: calc(100vh - var(--header-height));
+}
+
 .content {
   padding: 32px;
   max-width: 1200px;

@@ -1,8 +1,10 @@
 import '../styles/header.css';
 import { Sparkles, Bell, User } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import ProfileDropdown from '../components/ProfileDropdown';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthProvider';
 
 const Header = () => {
     const [showNotif, setShowNotif] = useState(false);
@@ -28,6 +30,9 @@ const Header = () => {
         { title: 'Pengajuan anggota baru', time: '1 hari lalu' },
     ];
 
+    const { logout } = useContext(AuthContext)
+    const navigate = useNavigate()
+
     return (
         <header className="header">
             <div className="header-inner">
@@ -48,7 +53,7 @@ const Header = () => {
                         <div className="avatar">D</div>
                         <span className="profile-name">Dummy</span>
                     </button>
-                    {showProfile && <ProfileDropdown onLogout={() => { console.log('logout'); }} />}
+                    {showProfile && <ProfileDropdown onLogout={() => { logout(); setShowProfile(false); navigate('/login'); }} />}
                 </div>
             </div>
         </header>
