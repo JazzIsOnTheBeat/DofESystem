@@ -6,7 +6,12 @@ import { Ribbon } from 'lucide-react';
 const Sidebar = () => {
     return (
         <aside className="sidebar">
-            <h2 className='sidebar-title'>Sidebar Title nya Nanti</h2>
+            <h2 className='sidebar-title'>
+                <div className="sidebar-brand">
+                    <span className="brand-text">DofE Awards ST Bhinneka</span>
+                </div>
+                <div className="sidebar-subtitle">Management System</div>
+            </h2>
             <nav className="nav">
                 <ul>
                     <li className="nav-item">

@@ -30,7 +30,7 @@ const Header = () => {
         { title: 'Pengajuan anggota baru', time: '1 hari lalu' },
     ];
 
-    const { logout } = useContext(AuthContext)
+    const { logout, user } = useContext(AuthContext)
     const navigate = useNavigate()
 
     return (
@@ -50,8 +50,8 @@ const Header = () => {
 
                 <div className="profile-wrap" ref={profileRef}>
                     <button className="profile-btn" aria-label="Profile" onClick={(e) => { e.stopPropagation(); setShowProfile(s => !s); }}>
-                        <div className="avatar">D</div>
-                        <span className="profile-name">Dummy</span>
+                        <div className="avatar">{user && user.username ? user.username.charAt(0).toUpperCase() : 'D'}</div>
+                        <span className="profile-name">{user && user.username ? user.username : 'Dummy'}</span>
                     </button>
                     {showProfile && <ProfileDropdown onLogout={() => { logout(); setShowProfile(false); navigate('/login'); }} />}
                 </div>

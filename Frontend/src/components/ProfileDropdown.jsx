@@ -7,7 +7,7 @@ const ProfileDropdown = ({ onLogout }) => {
     <div className="profile-dropdown" role="menu" aria-label="Profile menu">
       <ul className="profile-list">
         <li className="profile-item">
-          <a className="profile-link" href="#/settings">
+          <a className="profile-link" href="/settings">
             <Settings className="profile-link-icon" size={16} />
             <span>Pengaturan</span>
           </a>

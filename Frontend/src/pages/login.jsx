@@ -42,8 +42,8 @@ export default function Login() {
         <aside className="login-side">
           <div className="side-inner">
             <div className="brand-lg">D</div>
-            <h1 className="side-title">Welcome to DofE Awards</h1>
-            <p className="side-desc">A simple management system for tracking awards, members, and contributions. Please sign in to continue.</p>
+            <h1 className="side-title text-left">DofE Awards ST Bhinneka</h1>
+            <p className="side-desc text-left">Management System</p>
           </div>
         </aside>
 
@@ -69,7 +69,7 @@ export default function Login() {
               </div>
             </form>
 
-            <div className="helper compact-helper">Demo credentials — <strong>admin</strong> / <strong>password</strong></div>
+            <div className="helper compact-helper">Demo credentials(Jika lu mau testing) — <strong>admin</strong> / <strong>password</strong></div>
           </div>
         </main>
       </div>
