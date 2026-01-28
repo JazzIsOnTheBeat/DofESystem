@@ -1,6 +1,5 @@
 import React from 'react'
 import '../styles/cards.css'
-import useState from 'react'
 export default function MemberCard({ name, role }) {
 	const initials = (name || '')
 		.split(' ')

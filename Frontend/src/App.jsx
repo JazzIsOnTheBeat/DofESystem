@@ -7,6 +7,7 @@ import Home from './pages/home';
 import Cash from './pages/cash';
 import Members from './pages/members';
 import Settings from './pages/Settings';
+import Login from './pages/login';
 
 function App() {
   const location = useLocation()
@@ -21,6 +22,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/cash" element={<Cash />} />
             <Route path="/members" element={<Members />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </div>

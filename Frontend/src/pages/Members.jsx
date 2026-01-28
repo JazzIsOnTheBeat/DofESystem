@@ -10,8 +10,13 @@ const Members = () => {
     const fetchMembers = async () => {
       setLoading(true)
       try {
-        const res = await fetch('http://localhost:3000/users')
-        if (!res.ok) throw new Error('Failed to fetch')
+        const token = localStorage.getItem('accessToken')
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+        const res = await fetch('http://localhost:3000/users', { headers, credentials: 'include' })
+        if (!res.ok) {
+          if (res.status === 401) throw new Error('Unauthorized. Silakan login.')
+          throw new Error('Failed to fetch')
+        }
         const data = await res.json()
         setMembers(data)
       } catch (err) {

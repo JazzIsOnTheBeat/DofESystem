@@ -1,7 +1,46 @@
-import React from 'react'
+import React, { useState, useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ToastContext } from '../context/ToastContext'
 import '../styles/login.css'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function Login() {
+  const [nim, setNim] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const { showToast } = useContext(ToastContext)
+  const navigate = useNavigate()
+
+  const submit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      const res = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nim, password })
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ msg: 'Login gagal' }))
+        showToast(err.msg || 'Login gagal', 'error')
+        return
+      }
+
+      const data = await res.json()
+      const token = data.accessToken || data.token || null
+      if (token) localStorage.setItem('accessToken', token)
+      showToast('Login berhasil', 'success')
+      navigate('/')
+    } catch (err) {
+      showToast('Terjadi kesalahan jaringan', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="login-page split">
       <div className="login-split">
@@ -14,13 +53,29 @@ export default function Login() {
         </aside>
 
         <main className="login-panel" role="main" aria-label="Sign in">
-          <div className="panel-card">
-            <h2 className="panel-title">Login Temporarily Disabled</h2>
-            <p style={{marginTop:12}}>The login feature is currently disabled by the administrator. Please try again later.</p>
-            <div style={{marginTop:16}}>
-              <a href="/" className="btn-primary">Go to Home</a>
+          <form className="panel-card" onSubmit={submit}>
+            <h2 className="panel-title">Masuk</h2>
+
+            <label className="field-label" htmlFor="nim">NIM</label>
+            <input className="field-input" id="nim" value={nim} onChange={(e) => setNim(e.target.value)} required />
+
+            <label className="field-label" htmlFor="password" style={{ marginTop: 12 }}>Password</label>
+            <div className="input-with-action">
+              <input
+                className="field-input"
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required/>
             </div>
-          </div>
+
+            <div style={{ marginTop: 20 }}>
+              <button className="btn-primary full rounded-full" type="submit" disabled={loading}>
+                {loading ? 'Memproses...' : 'Masuk'}
+              </button>
+            </div>
+          </form>
         </main>
       </div>
     </div>
