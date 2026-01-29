@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Users, Loader2, AlertCircle } from 'lucide-react'
 import MemberCard from '../components/cards'
 
 const Members = () => {
@@ -29,10 +30,31 @@ const Members = () => {
   }, [])
 
   return (
-    <section>
-      <h2>Anggota</h2>
-      {loading && <p>Memuat anggota...</p>}
-      {error && <p className="error">{error}</p>}
+    <section className="page-container">
+      <div className="page-header">
+        <div className="page-title-group">
+          <h2 className="page-title">
+            <Users className="page-icon" size={28} />
+            Anggota
+          </h2>
+          <p className="page-subtitle">Daftar anggota DofE ST Bhinneka</p>
+        </div>
+      </div>
+
+      {loading && (
+        <div className="loading-state">
+          <Loader2 className="loading-spinner" size={32} />
+          <span>Memuat anggota...</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-state">
+          <AlertCircle size={20} />
+          <span>{error}</span>
+        </div>
+      )}
+
       <div className="members-grid">
         {members && members.map((m) => (
           <MemberCard key={m.id} name={m.nama} role={m.role} />

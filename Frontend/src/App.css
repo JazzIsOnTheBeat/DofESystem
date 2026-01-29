@@ -1,92 +1,73 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+/* ============================================================
+   APP LAYOUT - Main Application Structure
+   ============================================================ */
+@import './styles/theme.css';
+@import './styles/layout.css';
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-/* App layout helpers to accommodate fixed sidebar */
+/* App Container */
 .App {
   min-height: 100vh;
   position: relative;
   width: 100%;
-  background: linear-gradient(180deg, #ffffff, #fbfcfd);
+  background: var(--theme-bg-primary);
+  display: flex;
 }
 
-/* Layout: fixed sidebar + fixed header */
-:root { --sidebar-width: 260px; --header-height: 64px; }
-
+/* Main Content Area */
 .main-content {
+  flex: 1;
   margin-left: var(--sidebar-width);
   margin-top: var(--header-height);
-  width: calc(100% - var(--sidebar-width));
-  min-height: calc(100vh - var(--header-height));
+  margin-bottom: var(--footer-height);
+  padding: 0;
+  min-height: calc(100vh - var(--header-height) - var(--footer-height));
+  color: var(--theme-text-primary);
+  overflow-x: hidden;
 }
 
-/* When hiding the sidebar (eg. on login) remove left offset so content centers */
+/* No Sidebar Mode (Login page) */
 .no-sidebar .main-content {
   margin-left: 0;
-  width: 100%;
-}
-
-/* safety: hide sidebar if present under no-sidebar */
-.no-sidebar .sidebar { display: none }
-
-/* When on login (no-sidebar) center the inner content area so login card doesn't sit to the left */
-.no-sidebar .content {
+  margin-top: 0;
+  margin-bottom: 0;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 20px;
-  min-height: calc(100vh - var(--header-height));
 }
 
-.content {
-  padding: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
-  color: #0f172a;
+.no-sidebar .sidebar {
+  display: none;
 }
 
-/* small responsive adjustments */
+.no-sidebar .header,
+.no-sidebar .footer {
+  display: none;
+}
+
+/* Responsive Layout */
 @media (max-width: 900px) {
-  :root { --sidebar-width: 72px; }
-  .main-content { margin-left: var(--sidebar-width); }
-  .sidebar h2 { display: none; }
+  :root {
+    --sidebar-width: 72px;
+  }
+
+  .main-content {
+    margin-left: var(--sidebar-width);
+  }
+
+  .sidebar h2,
+  .sidebar-title {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding-bottom: 80px;
+  }
 }

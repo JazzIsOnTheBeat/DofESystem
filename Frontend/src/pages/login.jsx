@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ToastContext } from '../context/ToastContext'
+import { AuthContext } from '../context/AuthProvider'
 import '../styles/login.css'
 import { Eye, EyeOff } from 'lucide-react'
 
@@ -10,28 +11,18 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { showToast } = useContext(ToastContext)
+  const { login } = useContext(AuthContext)
   const navigate = useNavigate()
 
   const submit = async (e) => {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3000/login', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nim, password })
-      })
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ msg: 'Login gagal' }))
-        showToast(err.msg || 'Login gagal', 'error')
+      const result = await login({ nim, password })
+      if (!result.success) {
+        showToast(result.error || 'Login gagal', 'error')
         return
       }
-
-      const data = await res.json()
-      const token = data.accessToken || data.token || null
-      if (token) localStorage.setItem('accessToken', token)
       showToast('Login berhasil', 'success')
       navigate('/')
     } catch (err) {

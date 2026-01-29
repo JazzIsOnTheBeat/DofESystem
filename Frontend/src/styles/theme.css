@@ -1,0 +1,275 @@
+/* ============================================================
+   GLOBAL THEME - Dark Glassmorphism Design System
+   Shared across all pages and components
+   ============================================================ */
+
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ============================================================
+   CSS VARIABLES - DESIGN TOKENS
+   ============================================================ */
+:root {
+    /* Core Colors */
+    --theme-bg-primary: #0f0f1a;
+    --theme-bg-secondary: #14141f;
+    --theme-bg-tertiary: #1a1a2e;
+    --theme-bg-elevated: #1e1e30;
+
+    /* Glass Effects */
+    --theme-glass: rgba(255, 255, 255, 0.03);
+    --theme-glass-border: rgba(255, 255, 255, 0.08);
+    --theme-glass-hover: rgba(255, 255, 255, 0.06);
+    --theme-glass-active: rgba(255, 255, 255, 0.1);
+
+    /* Accent Colors */
+    --theme-accent-primary: #6366f1;
+    --theme-accent-secondary: #8b5cf6;
+    --theme-accent-tertiary: #a855f7;
+    --theme-accent-glow: rgba(99, 102, 241, 0.3);
+
+    /* Status Colors */
+    --theme-success: #10b981;
+    --theme-success-glow: rgba(16, 185, 129, 0.2);
+    --theme-danger: #ef4444;
+    --theme-danger-glow: rgba(239, 68, 68, 0.2);
+    --theme-warning: #f59e0b;
+    --theme-warning-glow: rgba(245, 158, 11, 0.2);
+    --theme-info: #06b6d4;
+    --theme-info-glow: rgba(6, 182, 212, 0.2);
+
+    /* Text Colors */
+    --theme-text-primary: #ffffff;
+    --theme-text-secondary: rgba(255, 255, 255, 0.7);
+    --theme-text-muted: rgba(255, 255, 255, 0.5);
+    --theme-text-disabled: rgba(255, 255, 255, 0.3);
+
+    /* Shadows */
+    --theme-shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --theme-shadow-md: 0 8px 40px rgba(0, 0, 0, 0.4);
+    --theme-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+    --theme-shadow-glow: 0 0 40px var(--theme-accent-glow);
+
+    /* Transitions */
+    --theme-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --theme-transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --theme-transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    --theme-transition-spring: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    /* Border Radius */
+    --theme-radius-sm: 8px;
+    --theme-radius-md: 12px;
+    --theme-radius-lg: 16px;
+    --theme-radius-xl: 24px;
+    --theme-radius-full: 9999px;
+
+    /* Layout */
+    --sidebar-width: 260px;
+    --header-height: 64px;
+    --footer-height: 48px;
+}
+
+/* ============================================================
+   GLOBAL RESET & BASE STYLES
+   ============================================================ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--theme-bg-primary);
+    color: var(--theme-text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* ============================================================
+   GLOBAL KEYFRAME ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+@keyframes glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px var(--theme-accent-glow);
+    }
+
+    50% {
+        box-shadow: 0 0 40px var(--theme-accent-glow), 0 0 60px rgba(139, 92, 246, 0.2);
+    }
+}
+
+@keyframes gradientFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes pop {
+    from {
+        transform: scale(0.98) translateY(-4px);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================
+   GLOBAL UTILITY CLASSES
+   ============================================================ */
+.glass-card {
+    background: var(--theme-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--theme-glass-border);
+    border-radius: var(--theme-radius-lg);
+}
+
+.glass-surface {
+    background: var(--theme-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, var(--theme-text-primary), var(--theme-accent-primary), var(--theme-accent-secondary));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientFlow 3s ease infinite;
+}
+
+/* ============================================================
+   GLOBAL SCROLLBAR STYLING
+   ============================================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--theme-glass);
+    border-radius: var(--theme-radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--theme-accent-primary), var(--theme-accent-secondary));
+    border-radius: var(--theme-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--theme-accent-secondary), var(--theme-accent-tertiary));
+}
+
+/* ============================================================
+   ACCESSIBILITY
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+:focus-visible {
+    outline: 2px solid var(--theme-accent-primary);
+    outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+    background: rgba(99, 102, 241, 0.3);
+    color: var(--theme-text-primary);
+}

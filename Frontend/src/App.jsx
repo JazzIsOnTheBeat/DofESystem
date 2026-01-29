@@ -17,7 +17,6 @@ function App() {
       {!isLogin && <Sidebar />}
       <div className="main-content">
         {!isLogin && <Header />}
-        <div className="content">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/cash" element={<Cash />} />
@@ -25,8 +24,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
-        </div>
-      </div>
+       </div>
       {!isLogin && <Footer />}
     </div>
   )

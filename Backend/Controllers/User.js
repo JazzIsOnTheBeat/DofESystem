@@ -8,7 +8,7 @@ export const Register = async (req, res) => {
         return res.status(400).json({ msg: "Data wajib (nama, nim, password) tidak boleh kosong" });
     }
 
-    
+
 
 
     const sameNim = await Users.findOne({
@@ -44,20 +44,28 @@ export const Register = async (req, res) => {
 
 export const Login = async (req, res) => {
     try {
+        const { nim, password } = req.body;
+
+        // Validate input
+        if (!nim || !password) {
+            return res.status(400).json({ msg: "NIM dan Password harus diisi" });
+        }
+
         const user = await Users.findOne({
             where: {
-                nim: req.body.nim,
+                nim: nim,
             }
         });
 
         // Bila NIM user tidak ada
         if (!user) {
-            return res.status(404).json({ msg: "User Tidak ditemukan" });
+            return res.status(404).json({ msg: "User tidak ditemukan" });
         }
 
-        const match = await bcrypt.compare(req.body.password, user.password);
-        if (!match) return res.status(400).json({ msg: 'Password salah' })
-
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
+            return res.status(400).json({ msg: 'Password salah' });
+        }
 
         const userId = user.id;
         const nama = user.nama;
@@ -69,6 +77,7 @@ export const Login = async (req, res) => {
         const refreshToken = jwt.sign({ userId, nama, role }, process.env.REFRESH_TOKEN_SECRET, {
             expiresIn: '6h'
         });
+
         await Users.update(
             { refreshToken: refreshToken },
             {
@@ -76,14 +85,24 @@ export const Login = async (req, res) => {
                     id: userId,
                 },
             }
-        )
+        );
+
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             maxAge: 24 * 60 * 60 * 1000,
+            sameSite: 'lax',
         });
-        res.json({ accessToken });
+
+        // Store user role and id for frontend
+        res.json({
+            accessToken,
+            userId,
+            role,
+            nama
+        });
     } catch (error) {
-        res.status(404).json({ msg: "Terjadi Kesalahan" });
+        console.error('Login error:', error);
+        res.status(500).json({ msg: "Terjadi kesalahan server" });
     }
 };
 
@@ -98,40 +117,40 @@ export const getUsers = async (req, res) => {
 };
 
 export const Logout = async (req, res) => {
-    
-        const refreshToken = req.cookies.refreshToken;
-        if (!refreshToken) {
-            return res.sendStatus(204);
+
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+        return res.sendStatus(204);
+    }
+
+    const user = await Users.findOne({
+        where: { refreshToken }
+    });
+
+    if (!user) {
+        return res.sendStatus(403);
+    }
+
+    if (!user) return res.sendStatus(204);
+    const userId = user.id;
+    await Users.update({ refreshToken: null }, {
+        where: {
+            id: userId
         }
+    });
 
-        const user = await Users.findOne({
-            where: { refreshToken }
-        });
+    res.clearCookie('refreshToken');
+    return res.sendStatus(200);
 
-        if (!user) {
-            return res.sendStatus(403);
-        }
-
-        if(!user) return res.sendStatus(204);
-        const userId = user.id;
-        await Users.update({refreshToken: null}, {
-            where: {
-                id : userId
-            }
-        });
-
-        res.clearCookie('refreshToken');
-        return res.sendStatus(200);
-        
-    } 
+}
 
 export const changePass = async (req, res) => {
     try {
-    const {password, confPass} = req.body;
+        const { password, confPass } = req.body;
 
-    if (password !== confPass) {
-        return res.status(400).json({ msg :"Password dan Konfirmasi Password tidak cocok"})
-    }
+        if (password !== confPass) {
+            return res.status(400).json({ msg: "Password dan Konfirmasi Password tidak cocok" })
+        }
 
         const user = await Users.findByPk(req.userId);
         if (!user) {
@@ -146,11 +165,11 @@ export const changePass = async (req, res) => {
                 id: user.id
             }
         });
-        
-        res.json({ msg : "Data berhasil diperbarui"})    
+
+        res.json({ msg: "Data berhasil diperbarui" })
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: "Terjadi Kesalahan"})
+        res.status(500).json({ msg: "Terjadi Kesalahan" })
     }
-    
+
 }

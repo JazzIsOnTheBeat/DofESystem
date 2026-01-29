@@ -3,21 +3,15 @@ import '../styles/header.css';
 import { Settings, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ToastContext } from '../context/ToastContext';
+import { AuthContext } from '../context/AuthProvider';
 
 const ProfileDropdown = () => {
   const navigate = useNavigate();
   const { showToast } = useContext(ToastContext);
+  const { logout } = useContext(AuthContext);
 
   const handleLogout = async () => {
-    try {
-      await fetch('http://localhost:3000/logout', {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-    } catch (err) {
-      console.error('Logout error', err);
-    }
-    localStorage.removeItem('accessToken');
+    await logout()
     showToast('Logout berhasil', 'success');
     navigate('/login');
   }
