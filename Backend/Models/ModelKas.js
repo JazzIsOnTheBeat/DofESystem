@@ -19,16 +19,17 @@ const Kas = db.define(
         },
         bukti: {
             type: DataTypes.STRING(),
-            allowNull: true,
+            allowNull: false,
             unique: true
         },
-        status: {
+        Status: {
             type: DataTypes.ENUM('pending', 'diterima', 'ditolak'),
             allowNull: true,
             defaultValue: "pending"
         },
         catatan: {
-            type: DataTypes.ENUM("Diterima", "Kode Referensi Tidak Valid")
+            type: DataTypes.ENUM("Diterima", "Kode Referal Tidak Valid"),
+            allowNull: true
         }
     },
     {
