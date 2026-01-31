@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent horizontal overflow and use border-box sizing */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

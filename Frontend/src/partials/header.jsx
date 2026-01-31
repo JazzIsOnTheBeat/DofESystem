@@ -1,6 +1,6 @@
 import '../styles/header.css';
 import { Sparkles, Bell, User } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import ProfileDropdown from '../components/ProfileDropdown';
 
@@ -28,11 +28,12 @@ const Header = () => {
         { title: 'Pengajuan anggota baru', time: '1 hari lalu' },
     ];
 
+
     return (
         <header className="header">
             <div className="header-inner">
                 <Sparkles className="icon" size={20} />
-                <h1>DofE Project</h1>
+                <h1>DofE Management System</h1>
             </div>
 
             <div className="header-actions">
@@ -48,7 +49,7 @@ const Header = () => {
                         <div className="avatar">D</div>
                         <span className="profile-name">Dummy</span>
                     </button>
-                    {showProfile && <ProfileDropdown onLogout={() => { console.log('logout'); }} />}
+                    {showProfile && <ProfileDropdown />}
                 </div>
             </div>
         </header>

@@ -1,0 +1,119 @@
+/* ============================================================
+   TOAST NOTIFICATIONS - Dark Glassmorphism Theme
+   ============================================================ */
+
+.toast-container {
+  position: fixed;
+  right: 20px;
+  top: calc(var(--header-height, 64px) + 20px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast-item {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 400px;
+  background: var(--theme-bg-secondary);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--theme-glass-border);
+  color: var(--theme-text-primary);
+  padding: 14px 16px;
+  border-radius: var(--theme-radius-md);
+  box-shadow: var(--theme-shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  transform-origin: right top;
+  animation: toast-in 0.3s var(--theme-transition-spring);
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.toast-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--theme-glass);
+  border: none;
+  border-radius: var(--theme-radius-sm);
+  color: var(--theme-text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--theme-transition-fast);
+}
+
+.toast-close:hover {
+  background: var(--theme-glass-hover);
+  color: var(--theme-text-primary);
+}
+
+/* Toast Types */
+.toast-info {
+  background: var(--theme-bg-secondary);
+  border-left: 3px solid var(--theme-info);
+}
+
+.toast-success {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), var(--theme-bg-secondary));
+  border-left: 3px solid var(--theme-success);
+}
+
+.toast-success .toast-message::before {
+  content: '✓ ';
+  color: var(--theme-success);
+}
+
+.toast-error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), var(--theme-bg-secondary));
+  border-left: 3px solid var(--theme-danger);
+}
+
+.toast-error .toast-message::before {
+  content: '✕ ';
+  color: var(--theme-danger);
+}
+
+.toast-warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), var(--theme-bg-secondary));
+  border-left: 3px solid var(--theme-warning);
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateX(20px) scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-out {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(20px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+.toast-item.leaving {
+  animation: toast-out 0.2s ease-out forwards;
+}
