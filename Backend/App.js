@@ -1,7 +1,7 @@
 import db from "./Config/database.js";
 import express from "express";
 // import Users from "./Models/ModelUser.js";
-import Kas from "./Models/ModelKas.js";
+// import Kas from "./Models/ModelKas.js";
 import router from "./Routes/index.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -16,7 +16,7 @@ console.log("Menyambungkan ke Database");
         await db.authenticate();
         console.log(`Koneksi Terhubung`);
         // await Users.sync();
-        await Kas.sync();
+        // await Kas.sync();
     } catch (error) {
         console.log('Tidak bisa terhubung ke database', error);
     }

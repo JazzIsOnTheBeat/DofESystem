@@ -2,7 +2,7 @@ import express from "express";
 import { Register , getUsers, Login, Logout, changePass } from "../Controllers/User.js";
 import { refreshToken } from "../Controllers/RefreshToken.js";
 import { verifyToken } from "../Middleware/VerifyToken.js";
-import { getKas, getKasMy } from "../Controllers/Kas.js";
+import { getKas, getKasMy, postKas, statusKas, deleteKas } from "../Controllers/Kas.js";
 
 const router = express.Router();
 
@@ -16,6 +16,9 @@ router.delete("/logout", Logout)
 
 // Kas Routes
 router.get('/kas/staff', verifyToken, getKas);
-router.get('/kas/my', verifyToken, getKas);
+router.get('/kas/my', verifyToken, getKasMy);
+router.post('/kas', verifyToken, postKas);
+router.patch('/kas/bendahara/:id',verifyToken, statusKas);
+router.patch('/kas/staff/:id',verifyToken, deleteKas);
 
 export default router;
