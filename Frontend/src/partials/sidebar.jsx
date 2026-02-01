@@ -1,9 +1,27 @@
+import { memo, useContext, useMemo } from 'react';
 import '../styles/sidebar.css';
-import { Home, Wallet, Settings, Users } from 'lucide-react';
+import { Home, Wallet, Settings, Users, Ribbon, FileText, ClipboardList } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { Ribbon } from 'lucide-react';
+import { AuthContext } from '../context/AuthProvider';
 
-const Sidebar = () => {
+const Sidebar = memo(function Sidebar() {
+    const { accessToken } = useContext(AuthContext);
+
+    const userRole = useMemo(() => {
+        if (!accessToken) return null;
+        try {
+            const base64Url = accessToken.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            return JSON.parse(jsonPayload).role;
+        } catch { return null; }
+    }, [accessToken]);
+
+    const isPengurus = useMemo(() => {
+        const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
+        return pengurusRoles.includes(userRole);
+    }, [userRole]);
+
     return (
         <aside className="sidebar">
             <h2 className='sidebar-title'>
@@ -21,21 +39,35 @@ const Sidebar = () => {
                     <li className="nav-item">
                         <NavLink to="/" end className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
                             <Home className="nav-icon" size={18} />
-                            <span className="nav-label">Beranda</span>
+                            <span className="nav-label">Dashboard</span>
                         </NavLink>
                     </li>
                     <li className="nav-item">
                         <NavLink to="/cash" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
                             <Wallet className="nav-icon" size={18} />
-                            <span className="nav-label">Uang Kas</span>
+                            <span className="nav-label">Cash</span>
                         </NavLink>
                     </li>
                     <li className="nav-item">
                         <NavLink to="/members" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
                             <Users className="nav-icon" size={18} />
-                            <span className="nav-label">Anggota</span>
+                            <span className="nav-label">Members</span>
                         </NavLink>
                     </li>
+                    <li className="nav-item">
+                        <NavLink to="/summary" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
+                            <ClipboardList className="nav-icon" size={18} />
+                            <span className="nav-label">Summary</span>
+                        </NavLink>
+                    </li>
+                    {isPengurus && (
+                        <li className="nav-item">
+                            <NavLink to="/audit-logs" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
+                                <FileText className="nav-icon" size={18} />
+                                <span className="nav-label">Audit Logs</span>
+                            </NavLink>
+                        </li>
+                    )}
                     <li className="nav-item">
                         <NavLink to="/settings" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
                             <Settings className="nav-icon" size={18} />
@@ -46,6 +78,6 @@ const Sidebar = () => {
             </nav>
         </aside>
     );
-}
+});
 
 export default Sidebar;

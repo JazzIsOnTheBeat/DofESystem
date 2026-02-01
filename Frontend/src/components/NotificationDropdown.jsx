@@ -21,12 +21,12 @@ const NotificationDropdown = ({ items = [] }) => {
             </li>
           ))
         ) : (
-          <li className="notif-empty">Tidak ada notifikasi</li>
+          <li className="notif-empty">No notifications</li>
         )}
       </ul>
       {items.length > 0 && (
         <div className="notif-footer">
-          <button className="notif-clear">Hapus semua</button>
+          <button className="notif-clear">Clear all</button>
         </div>
       )}
     </div>

@@ -1,0 +1,205 @@
+/* ============================================================
+   WORK IN PROGRESS PAGE
+   ============================================================ */
+
+.wip-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--header-height) - var(--footer-height));
+  padding: 2rem;
+  background: var(--theme-bg-primary);
+}
+
+.wip-content {
+  text-align: center;
+  max-width: 500px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Illustration */
+.wip-illustration {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.wip-icon-wrapper {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, var(--theme-accent-primary), var(--theme-accent-secondary));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 15px 50px rgba(99, 102, 241, 0.4);
+  }
+}
+
+/* Decorations */
+.wip-decorations {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sparkle {
+  position: absolute;
+  color: var(--theme-accent-primary);
+  animation: sparkleFloat 3s ease-in-out infinite;
+}
+
+.sparkle.s1 {
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.sparkle.s2 {
+  top: 20%;
+  right: 15%;
+  animation-delay: 0.5s;
+}
+
+.sparkle.s3 {
+  bottom: 20%;
+  left: 20%;
+  animation-delay: 1s;
+}
+
+@keyframes sparkleFloat {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-10px) rotate(180deg);
+  }
+}
+
+/* Text */
+.wip-content h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+  margin: 0 0 0.75rem 0;
+}
+
+.wip-content > p {
+  font-size: 1rem;
+  color: var(--theme-text-secondary);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+}
+
+/* Info Badge */
+.wip-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--theme-glass);
+  border: 1px solid var(--theme-glass-border);
+  border-radius: var(--theme-radius-full);
+  color: var(--theme-text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.wip-info svg {
+  color: var(--theme-accent-primary);
+}
+
+/* Actions */
+.wip-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.wip-actions .btn-primary,
+.wip-actions .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: var(--theme-radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--theme-transition-fast);
+  min-width: 220px;
+}
+
+.wip-actions .btn-primary {
+  background: linear-gradient(135deg, var(--theme-accent-primary), var(--theme-accent-secondary));
+  color: white;
+  border: none;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.wip-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.wip-actions .btn-secondary {
+  background: var(--theme-glass);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-glass-border);
+}
+
+.wip-actions .btn-secondary:hover {
+  background: var(--theme-glass-hover);
+  border-color: var(--theme-accent-primary);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .wip-icon-wrapper {
+    width: 100px;
+    height: 100px;
+  }
+
+  .wip-icon-wrapper svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .wip-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .wip-actions .btn-primary,
+  .wip-actions .btn-secondary {
+    width: 100%;
+    min-width: auto;
+  }
+}

@@ -20,13 +20,13 @@ export default function Login() {
     try {
       const result = await login({ nim, password })
       if (!result.success) {
-        showToast(result.error || 'Login gagal', 'error')
+        showToast(result.error || 'Login failed', 'error')
         return
       }
-      showToast('Login berhasil', 'success')
+      showToast('Login successful', 'success')
       navigate('/')
     } catch (err) {
-      showToast('Terjadi kesalahan jaringan', 'error')
+      showToast('A network error occurred', 'error')
     } finally {
       setLoading(false)
     }
@@ -45,7 +45,7 @@ export default function Login() {
 
         <main className="login-panel" role="main" aria-label="Sign in">
           <form className="panel-card" onSubmit={submit}>
-            <h2 className="panel-title">Masuk</h2>
+            <h2 className="panel-title">Sign In</h2>
 
             <label className="field-label" htmlFor="nim">NIM</label>
             <input className="field-input" id="nim" value={nim} onChange={(e) => setNim(e.target.value)} required />
@@ -63,7 +63,7 @@ export default function Login() {
 
             <div style={{ marginTop: 20 }}>
               <button className="btn-primary full rounded-full" type="submit" disabled={loading}>
-                {loading ? 'Memproses...' : 'Masuk'}
+                {loading ? 'Processing...' : 'Sign In'}
               </button>
             </div>
           </form>

@@ -18,17 +18,8 @@
 	flex-direction: column;
 }
 
-/* Decorative glow */
-.sidebar::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 200px;
-	background: radial-gradient(ellipse at top left, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
-	pointer-events: none;
-}
+/* Decorative glow - disabled for performance */
+/* .sidebar::before { ... } */
 
 /* Brand Section */
 .sidebar-title {
@@ -47,7 +38,6 @@
 
 .sidebar-logo .logo-icon {
 	color: var(--theme-accent-primary);
-	filter: drop-shadow(0 0 10px var(--theme-accent-glow));
 }
 
 .sidebar-brand {

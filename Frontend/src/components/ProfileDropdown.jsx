@@ -12,7 +12,7 @@ const ProfileDropdown = () => {
 
   const handleLogout = async () => {
     await logout()
-    showToast('Logout berhasil', 'success');
+    showToast('Logout successful', 'success');
     navigate('/login');
   }
 
@@ -22,7 +22,7 @@ const ProfileDropdown = () => {
         <li className="profile-item">
           <a className="profile-link" href="/settings">
             <Settings className="profile-link-icon" size={16} />
-            <span>Pengaturan</span>
+            <span>Settings</span>
           </a>
         </li>
         <li className="profile-item">

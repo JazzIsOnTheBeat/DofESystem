@@ -9,7 +9,7 @@ const Kas = db.define(
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        jumlah : {
+        jumlah: {
             type: DataTypes.STRING,
             allowNull: false,
         },
@@ -19,8 +19,7 @@ const Kas = db.define(
         },
         bukti: {
             type: DataTypes.STRING(),
-            allowNull: false,
-            unique: true
+            allowNull: true,
         },
         Status: {
             type: DataTypes.ENUM('pending', 'diterima', 'ditolak'),
@@ -28,7 +27,7 @@ const Kas = db.define(
             defaultValue: "pending"
         },
         catatan: {
-            type: DataTypes.ENUM("Diterima", "Kode Referal Tidak Valid"),
+            type: DataTypes.STRING(100),
             allowNull: true
         }
     },
@@ -36,10 +35,10 @@ const Kas = db.define(
         freezeTableName: true,
         timestamps: true,
         paranoid: true
-    }   
+    }
 );
 
-Users.hasMany(Kas, { foreignKey: 'userId'});
-Kas.belongsTo(Users, { foreignKey: 'userId'});
+Users.hasMany(Kas, { foreignKey: 'userId' });
+Kas.belongsTo(Users, { foreignKey: 'userId' });
 
 export default Kas;

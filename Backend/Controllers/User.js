@@ -1,9 +1,19 @@
 import Users from "../Models/ModelUser.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { createAuditLog } from "../Models/ModelAuditLog.js";
+import { Op } from "sequelize";
 
 export const Register = async (req, res) => {
     const { nama, nim, password, confPass, role } = req.body;
+    
+    // Check if user has permission (only pengurus can add members)
+    const userRole = req.role;
+    const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
+    if (!pengurusRoles.includes(userRole)) {
+        return res.status(403).json({ msg: "Akses ditolak. Hanya pengurus yang dapat menambahkan anggota." });
+    }
+    
     if (!nama || !nim || !password) {
         return res.status(400).json({ msg: "Data wajib (nama, nim, password) tidak boleh kosong" });
     }
@@ -34,6 +44,17 @@ export const Register = async (req, res) => {
             password: hashPassword,
             role: role,
         });
+        
+        // Create audit log
+        await createAuditLog(
+            'user_created',
+            `Anggota baru "${nama}" dengan NIM ${nim} telah didaftarkan`,
+            req.userId,
+            req.nama,
+            null,
+            nama
+        );
+        
         res.json({ msg: 'Register Berhasil' })
     } catch (error) {
         console.log(error);
@@ -72,7 +93,7 @@ export const Login = async (req, res) => {
         const role = user.role;
 
         const accessToken = jwt.sign({ userId, nama, role }, process.env.ACCESS_TOKEN_SECRET, {
-            expiresIn: '2m'
+            expiresIn: '15m'
         });
         const refreshToken = jwt.sign({ userId, nama, role }, process.env.REFRESH_TOKEN_SECRET, {
             expiresIn: '6h'
@@ -94,6 +115,15 @@ export const Login = async (req, res) => {
         });
 
         // Store user role and id for frontend
+        
+        // Create login audit log
+        await createAuditLog(
+            'login',
+            `User ${nama} berhasil login ke sistem`,
+            userId,
+            nama
+        );
+        
         res.json({
             accessToken,
             userId,
@@ -101,8 +131,10 @@ export const Login = async (req, res) => {
             nama
         });
     } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ msg: "Terjadi kesalahan server" });
+        console.error('Login error detailed:', error);
+        console.log('Access Secret exists:', !!process.env.ACCESS_TOKEN_SECRET);
+        console.log('Refresh Secret exists:', !!process.env.REFRESH_TOKEN_SECRET);
+        res.status(500).json({ msg: "Terjadi kesalahan server", error: error.message });
     }
 };
 
@@ -173,3 +205,99 @@ export const changePass = async (req, res) => {
     }
 
 }
+
+// Update user (pengurus only)
+export const updateUser = async (req, res) => {
+    try {
+        const userRole = req.role;
+        const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
+        
+        if (!pengurusRoles.includes(userRole)) {
+            return res.status(403).json({ msg: "Akses ditolak. Hanya pengurus yang dapat mengedit anggota." });
+        }
+        
+        const { id } = req.params;
+        const { nama, nim, role, password } = req.body;
+        
+        const user = await Users.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ msg: "User tidak ditemukan" });
+        }
+        
+        const updateData = {};
+        if (nama) updateData.nama = nama;
+        if (nim) {
+            // Check if NIM already exists for another user
+            const existingNim = await Users.findOne({ where: { nim, id: { [Op.ne]: id } } });
+            if (existingNim) {
+                return res.status(409).json({ msg: "NIM sudah digunakan oleh user lain" });
+            }
+            updateData.nim = nim;
+        }
+        if (role) updateData.role = role;
+        if (password) {
+            const salt = await bcrypt.genSalt();
+            updateData.password = await bcrypt.hash(password, salt);
+        }
+        
+        await Users.update(updateData, { where: { id } });
+        
+        // Create audit log
+        await createAuditLog(
+            'user_updated',
+            `Data anggota "${user.nama}" telah diupdate`,
+            req.userId,
+            req.nama,
+            parseInt(id),
+            user.nama
+        );
+        
+        res.json({ msg: "Data anggota berhasil diperbarui" });
+    } catch (error) {
+        console.error('Update user error:', error);
+        res.status(500).json({ msg: "Terjadi kesalahan", error: error.message });
+    }
+};
+
+// Delete user (pengurus only)
+export const deleteUser = async (req, res) => {
+    try {
+        const userRole = req.role;
+        const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
+        
+        if (!pengurusRoles.includes(userRole)) {
+            return res.status(403).json({ msg: "Akses ditolak. Hanya pengurus yang dapat menghapus anggota." });
+        }
+        
+        const { id } = req.params;
+        
+        // Prevent deleting self
+        if (parseInt(id) === req.userId) {
+            return res.status(400).json({ msg: "Tidak dapat menghapus akun sendiri" });
+        }
+        
+        const user = await Users.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ msg: "User tidak ditemukan" });
+        }
+        
+        const deletedUserName = user.nama;
+        
+        await Users.destroy({ where: { id } });
+        
+        // Create audit log
+        await createAuditLog(
+            'user_deleted',
+            `Anggota "${deletedUserName}" telah dihapus dari sistem`,
+            req.userId,
+            req.nama,
+            null,
+            deletedUserName
+        );
+        
+        res.json({ msg: "Anggota berhasil dihapus" });
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ msg: "Terjadi kesalahan", error: error.message });
+    }
+};

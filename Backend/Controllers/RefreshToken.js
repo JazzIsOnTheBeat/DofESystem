@@ -19,11 +19,11 @@ export const refreshToken = async (req, res) => {
         jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
             if (err) return res.sendStatus(403);
             const userId = user.id;
-            const name = user.username;
+            const nama = user.nama;
             const role = user.role;
 
-            const accessToken = jwt.sign({ userId, name, role }, process.env.ACCESS_TOKEN_SECRET, {
-                expiresIn: '600s'
+            const accessToken = jwt.sign({ userId, nama, role }, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '15m'
             });
             res.json({ accessToken });
         })

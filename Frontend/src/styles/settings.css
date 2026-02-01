@@ -1,0 +1,126 @@
+/* ============================================================
+   SETTINGS PAGE - CONTROL PANEL REDESIGN
+   ============================================================ */
+
+.p-6 {
+    padding: 32px;
+    min-height: calc(100vh - 80px);
+    background: var(--theme-bg-primary);
+    color: var(--theme-text-primary);
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Header */
+h1.text-2xl {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 32px;
+    color: var(--theme-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+h1.text-2xl svg {
+    color: var(--theme-accent-primary);
+    transition: transform 0.5s ease;
+}
+
+h1.text-2xl:hover svg {
+    transform: rotate(90deg);
+}
+
+/* Settings Card */
+.max-w-md {
+    max-width: 600px;
+    width: 100%;
+}
+
+.bg-white,
+.dark\:bg-gray-800 {
+    background: var(--theme-bg-secondary);
+    border: 1px solid var(--theme-glass-border);
+    border-radius: var(--theme-radius-xl);
+    padding: 32px;
+    box-shadow: var(--theme-shadow-sm);
+    transition: all var(--theme-transition-normal);
+}
+
+.bg-white:hover,
+.dark\:bg-gray-800:hover {
+    box-shadow: var(--theme-shadow-md);
+    border-color: var(--theme-accent-primary);
+}
+
+/* Section Title */
+h2.text-lg {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--theme-text-secondary);
+    border-bottom: 1px solid var(--theme-glass-border);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Toggle Control Row */
+.flex.items-center.justify-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: var(--theme-radius-lg);
+    transition: background var(--theme-transition-fast);
+}
+
+.flex.items-center.justify-between:hover {
+    background: rgba(99, 102, 241, 0.05);
+}
+
+/* Label */
+span.flex.items-center.gap-2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    font-size: 1rem;
+    color: var(--theme-text-primary);
+}
+
+/* Toggle Button */
+button.px-4.py-2 {
+    padding: 10px 24px;
+    border-radius: var(--theme-radius-full);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all var(--theme-transition-spring);
+    box-shadow: var(--theme-shadow-sm);
+}
+
+/* Active State */
+button.bg-blue-600 {
+    background: var(--theme-accent-primary);
+    color: white;
+}
+
+button.bg-blue-600:hover {
+    background: var(--theme-accent-secondary);
+}
+
+/* Inactive State */
+button.bg-gray-200 {
+    background: var(--theme-glass-hover);
+    color: var(--theme-text-muted);
+}
+
+button.bg-gray-200:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--theme-text-primary);
+}
+
+.dark button.bg-gray-200:hover {
+    background: rgba(255, 255, 255, 0.1);
+}

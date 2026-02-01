@@ -1,13 +1,19 @@
 import './App.css';
 import Sidebar from './partials/sidebar';
-import Header from  './partials/header';
+import Header from './partials/header';
 import Footer from './partials/footer';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import Home from './pages/home';
-import Cash from './pages/cash';
-import Members from './pages/members';
+import Home from './pages/Home';
+import Cash from './pages/Cash';
+import Members from './pages/Members';
 import Settings from './pages/Settings';
 import Login from './pages/login';
+import AuditLogs from './pages/AuditLogs';
+import NotFound from './pages/NotFound';
+import WorkInProgress from './pages/WorkInProgress';
+import Summary from './pages/Summary';
+import RequireAuth from './components/RequireAuth';
+import RequirePengurus from './components/RequirePengurus';
 
 function App() {
   const location = useLocation()
@@ -17,14 +23,30 @@ function App() {
       {!isLogin && <Sidebar />}
       <div className="main-content">
         {!isLogin && <Header />}
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/cash" element={<Cash />} />
-            <Route path="/members" element={<Members />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
-       </div>
+        <Routes>
+          {/* Public Route */}
+          <Route path="/login" element={<Login />} />
+
+          {/* Protected Routes */}
+          <Route element={<RequireAuth><Sidebar /><Header /><div className="main-content"><Footer /></div></RequireAuth>} />
+          {/* Note: The above structure is tricky because Sidebar/Header are outside Routes. 
+                I need to re-structure App to wrap protected components properly. 
+                Let's use a Layout component or wrap individual elements.
+                Given current structure: Sidebar/Header/Footer are conditional on !isLogin.
+                I will wrap the lazy way: wrap the element prop. 
+            */}
+          <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
+          <Route path="/cash" element={<RequireAuth><Cash /></RequireAuth>} />
+          <Route path="/members" element={<RequireAuth><Members /></RequireAuth>} />
+          <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+          <Route path="/audit-logs" element={<RequirePengurus><AuditLogs /></RequirePengurus>} />
+          <Route path="/summary" element={<RequireAuth><Summary /></RequireAuth>} />
+          <Route path="/work-in-progress" element={<RequireAuth><WorkInProgress /></RequireAuth>} />
+          
+          {/* 404 Route - Must be last */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
       {!isLogin && <Footer />}
     </div>
   )

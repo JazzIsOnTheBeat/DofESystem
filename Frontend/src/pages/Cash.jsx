@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useContext, useCallback, memo } from 'react'
 import '../styles/cash.css'
 import {
   Wallet,
@@ -15,117 +15,63 @@ import {
   ArrowDownRight,
   Sparkles,
   Crown,
-  Medal
+  Medal,
+  Upload,
+  Eye,
+  Check,
+  XCircle,
+  MinusCircle,
+  Trash2,
+  Users
 } from 'lucide-react'
-
-// Helper: prefer several env variants for frontend (Vite uses import.meta.env)
-const API_BASE = (
-  (import.meta && import.meta.env && import.meta.env.VITE_API_URL) ||
-  (typeof process !== 'undefined' && process.env && (process.env.API_URL || process.env.REACT_APP_API_URL)) ||
-  'http://localhost:3000'
-)
+import { axiosPrivate } from '../api/axios'
+import { AuthContext } from '../context/AuthProvider'
 
 const months = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ]
 
 const monthsFull = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
-const dummyMembers = [
-  { id: 1, nama: 'Andi Pratama', role: 'anggota', kasAmount: 250000 },
-  { id: 2, nama: 'Budi Santoso', role: 'anggota', kasAmount: 150000 },
-  { id: 3, nama: 'Citra Dewi', role: 'bendahara', kasAmount: 600000 },
-  { id: 4, nama: 'Dewi Lestari', role: 'anggota', kasAmount: 50000 },
-  { id: 5, nama: 'Eka Purnama', role: 'anggota', kasAmount: 120000 },
-  { id: 6, nama: 'Fajar Nugroho', role: 'anggota', kasAmount: 90000 },
-  { id: 7, nama: 'Gina Maharani', role: 'anggota', kasAmount: 300000 },
-  { id: 8, nama: 'Hendra Wijaya', role: 'anggota', kasAmount: 70000 },
-  { id: 9, nama: 'Ika Permata', role: 'anggota', kasAmount: 180000 },
-  { id: 10, nama: 'Joko Widodo', role: 'anggota', kasAmount: 0 },
-]
+const AnimatedValue = memo(function AnimatedValue({ value, prefix = '', suffix = '' }) {
+  return <>{prefix}{value.toLocaleString('en-US')}{suffix}</>
+})
 
-const dummyPayments = {
-  1: new Set([0, 1, 2, 3, 4, 5]),
-  2: new Set([0, 1, 2]),
-  3: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
-  4: new Set([0]),
-  5: new Set([0, 2, 4]),
-  6: new Set([1, 3, 5]),
-  7: new Set([0, 1, 2, 3]),
-  8: new Set([0, 1]),
-  9: new Set([0, 1, 2, 3, 4]),
-  10: new Set([]),
-}
-
-// Animated Counter Component
-function AnimatedValue({ value, prefix = '', suffix = '' }) {
-  const [displayValue, setDisplayValue] = useState(0)
-
-  useEffect(() => {
-    const duration = 1000
-    const steps = 30
-    const stepValue = value / steps
-    let current = 0
-    let step = 0
-
-    const timer = setInterval(() => {
-      step++
-      current = Math.min(Math.round(stepValue * step), value)
-      setDisplayValue(current)
-
-      if (step >= steps) {
-        clearInterval(timer)
-        setDisplayValue(value)
-      }
-    }, duration / steps)
-
-    return () => clearInterval(timer)
-  }, [value])
-
-  return <>{prefix}{displayValue.toLocaleString('id-ID')}{suffix}</>
-}
-
-// Stat Card Component
-function StatCard({ title, value, icon: Icon, variant, trend, trendValue }) {
+const StatCard = memo(function StatCard({ title, value, icon: Icon, variant, trend, trendValue }) {
   return (
-    <div className={`card big ${variant}`}>
-      <div className="card-header">
-        <div className="card-icon">
-          <Icon size={22} />
+    <div className={`stat-card ${variant}`}>
+      <div className="stat-icon">
+        <Icon size={22} />
+      </div>
+      <div className="stat-content">
+        <div className="stat-label">{title}</div>
+        <div className="stat-value">
+          <AnimatedValue value={value} prefix="Rp " />
         </div>
         {trend && (
-          <div className={`card-trend ${trend}`}>
-            {trend === 'up' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+          <div className={`stat-trend ${trend}`}>
+            {trend === 'up' ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
             <span>{trendValue}</span>
           </div>
         )}
       </div>
-      <div className="card-title">{title}</div>
-      <div className="card-value">
-        <AnimatedValue value={value} prefix="Rp " />
-      </div>
     </div>
   )
-}
+})
 
-// Leaderboard Item Component
-function LeaderboardItem({ member, rank, payments }) {
-  const paidCount = payments[member.id]?.size || 0
-
-  const getRankIcon = () => {
-    if (rank === 1) return <Crown size={16} className="rank-icon gold" />
-    if (rank === 2) return <Medal size={16} className="rank-icon silver" />
-    if (rank === 3) return <Medal size={16} className="rank-icon bronze" />
-    return null
-  }
+const LeaderboardItem = memo(function LeaderboardItem({ member, rank, paidCount }) {
+  const rankIcon = useMemo(() => {
+    if (rank === 1) return <Crown size={14} className="rank-icon gold" />
+    if (rank === 2) return <Medal size={14} className="rank-icon silver" />
+    if (rank === 3) return <Medal size={14} className="rank-icon bronze" />
+    return <span className="rank-number">{rank}</span>
+  }, [rank])
 
   return (
     <li className="leaderboard-item">
-      <div className="rank-badge">
-        {getRankIcon() || <span className="rank-number">{rank}</span>}
-      </div>
+      <div className="rank-badge">{rankIcon}</div>
       <div className="avatar">
         {String(member.nama || '')[0]}
       </div>
@@ -133,475 +79,597 @@ function LeaderboardItem({ member, rank, payments }) {
         <strong>{member.nama}</strong>
         <div className="member-meta">
           <span className="payment-count">
-            <CheckCircle2 size={12} />
-            {paidCount} pembayaran
+            <CheckCircle2 size={10} />
+            {paidCount} months
           </span>
           <span className="payment-amount">
-            Rp {(member.kasAmount || 0).toLocaleString('id-ID')}
+            Rp {(paidCount * 50000).toLocaleString('en-US')}
           </span>
         </div>
       </div>
     </li>
   )
-}
+})
 
 export default function Cash() {
   const [members, setMembers] = useState([])
   const [payments, setPayments] = useState({})
+  const [pendingPayments, setPendingPayments] = useState([])
   const [expenses, setExpenses] = useState([])
+  const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, balance: 0 })
+
+  // Modals
   const [showQris, setShowQris] = useState(false)
   const [showExpenseModal, setShowExpenseModal] = useState(false)
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
+
+  // Forms
   const [newExpense, setNewExpense] = useState({ amount: '', desc: '' })
   const [selectedMember, setSelectedMember] = useState(null)
+  const [paymentFile, setPaymentFile] = useState(null)
+  const [paymentMonth, setPaymentMonth] = useState(new Date().getMonth())
+
   const [isLoading, setIsLoading] = useState(true)
 
-  const userRole = localStorage.getItem('userRole') || 'bendahara'
-  const userId = Number(localStorage.getItem('userId') || 1)
+  const { accessToken, isLoading: authLoading } = useContext(AuthContext);
 
-  useEffect(() => {
-    let mounted = true
+  const userInfo = useMemo(() => {
+    if (!accessToken) return { role: 'anggota', id: 0, nama: '' };
+    try {
+      const base64Url = accessToken.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return { role: 'anggota', id: 0, nama: '' };
+    }
+  }, [accessToken]);
 
-    async function load() {
-      setIsLoading(true)
+  const userRole = userInfo.role;
+  const userId = userInfo.userId;
+  const MONTHLY_FEE = 50000;
 
-      // Simulate loading delay for smooth animation
-      await new Promise(resolve => setTimeout(resolve, 300))
+  const loadData = useCallback(async () => {
+    setIsLoading(true)
 
-      try {
-        const res = await fetch(`${API_BASE}/users`, { credentials: 'include' })
-        if (!res.ok) throw new Error('no api')
-        const data = await res.json()
-        if (!mounted) return
-        setMembers(data)
-      } catch (err) {
-        setMembers(dummyMembers)
+    const kasEndpoint = userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua' ? '/kas/staff' : '/kas/my';
+
+    try {
+      const usersRes = await axiosPrivate.get('/users');
+      setMembers(usersRes.data);
+
+      const [kasRes, expenseRes, summaryRes] = await Promise.all([
+        axiosPrivate.get(kasEndpoint),
+        axiosPrivate.get('/pengeluaran'),
+        axiosPrivate.get('/kas/summary')
+      ]);
+
+      const map = {};
+      const pending = [];
+
+      kasRes.data.forEach((p) => {
+        const id = p.userId;
+        const monthStr = (p.bulan || '').substring(0, 3);
+        const idx = months.indexOf(monthStr);
+
+        map[id] = map[id] || new Map();
+
+        if (idx >= 0) {
+          map[id].set(idx, {
+            id: p.id,
+            status: p.Status,
+            bukti: p.bukti,
+            pending: p.Status === 'pending'
+          });
+        }
+
+        if (p.Status === 'pending') {
+          pending.push({ ...p, memberName: p.user?.nama || 'Unknown' });
+        }
+      });
+
+      setPayments(map);
+      setPendingPayments(pending);
+
+      // Process expenses
+      setExpenses(expenseRes.data.map(e => ({
+        id: e.id,
+        desc: e.deskripsi,
+        amount: e.jumlah,
+        tanggal: e.tanggal,
+        user: e.user?.nama || 'Unknown'
+      })));
+
+      // Process summary
+      setSummary(summaryRes.data);
+    } catch (err) {
+      console.error("Failed to fetch data", err);
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        console.log("Authentication failed - user needs to log in again");
       }
-
-      try {
-        const res2 = await fetch(`${API_BASE}/kas`, { credentials: 'include' })
-        if (!res2.ok) throw new Error('no api')
-        const data2 = await res2.json()
-        const map = {}
-        data2.forEach((p) => {
-          const id = p.userId
-          const idx = months.indexOf((p.bulan || '').substr(0, 3))
-          map[id] = map[id] || new Set()
-          if (idx >= 0) map[id].add(idx)
-        })
-        setPayments(map)
-      } catch (err) {
-        const clone = {}
-        Object.keys(dummyPayments).forEach(k => { clone[k] = new Set(dummyPayments[k]) })
-        setPayments(clone)
-      }
-
-      try {
-        const r3 = await fetch(`${API_BASE}/expenses`, { credentials: 'include' })
-        if (!r3.ok) throw new Error('no api')
-        const ex = await r3.json()
-        setExpenses(ex)
-      } catch (err) {
-        setExpenses([
-          { id: 1, desc: 'Beli ATK', amount: 20000 },
-          { id: 2, desc: 'Cetak laporan', amount: 50000 },
-          { id: 3, desc: 'Konsumsi rapat', amount: 75000 },
-        ])
-      }
-
-      setIsLoading(false)
     }
 
-    load()
-    return () => { mounted = false }
-  }, [])
+    setIsLoading(false);
+  }, [userRole]);
 
-  const togglePayment = (memberId, monthIdx) => {
-    setPayments((prev) => {
-      const next = { ...prev }
-      next[memberId] = next[memberId] ? new Set(next[memberId]) : new Set()
-      if (next[memberId].has(monthIdx)) next[memberId].delete(monthIdx)
-      else next[memberId].add(monthIdx)
-      return next
-    })
-  }
+  useEffect(() => {
+    if (!authLoading && accessToken) {
+      loadData();
+    } else if (!authLoading && !accessToken) {
+      setIsLoading(false);
+    }
+  }, [userRole, accessToken, authLoading, loadData]);
 
-  // Calculate totals
-  const MONTHLY_FEE = 50000 // Iuran per bulan
+  const handleUploadPayment = useCallback(async () => {
+    if (!paymentFile) return alert("Please select payment proof!");
 
-  const totalIncome = useMemo(() => {
-    let total = 0
-    Object.values(payments).forEach(s => {
-      total += (s.size || 0) * MONTHLY_FEE
-    })
-    return total
-  }, [payments])
+    const formData = new FormData();
+    formData.append("userId", userId);
+    formData.append("jumlah", MONTHLY_FEE);
+    formData.append("bulan", monthsFull[paymentMonth]);
+    formData.append("bukti", paymentFile);
 
-  const totalExpenses = useMemo(() =>
-    expenses.reduce((a, b) => a + (b.amount || 0), 0),
-    [expenses]
-  )
+    try {
+      await axiosPrivate.post('/kas', formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      alert("Payment proof submitted successfully! Waiting for Treasurer confirmation.");
+      setShowQris(false);
+      setPaymentFile(null);
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit payment proof.");
+    }
+  }, [paymentFile, userId, paymentMonth, loadData]);
 
-  const balance = useMemo(() => totalIncome - totalExpenses, [totalIncome, totalExpenses])
+  const handleVerifyPayment = useCallback(async (id, status) => {
+    try {
+      await axiosPrivate.patch(`/kas/bendahara/${id}`, {
+        Status: status,
+        catatan: status === 'diterima' ? 'Paid' : 'Invalid proof'
+      });
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to process verification.");
+    }
+  }, [loadData]);
 
-  const addExpense = () => {
+  const totalIncome = summary.totalIncome;
+  const totalExpenses = summary.totalExpense;
+  const balance = summary.balance;
+
+  const addExpense = useCallback(async () => {
     const amt = Number(newExpense.amount) || 0
-    if (!amt) return
-    setExpenses((e) => [...e, {
-      id: Date.now(),
-      desc: newExpense.desc || 'Pengeluaran',
-      amount: amt
-    }])
-    setNewExpense({ amount: '', desc: '' })
-    setShowExpenseModal(false)
-  }
+    if (!amt || !newExpense.desc) {
+      alert('Amount and description are required');
+      return;
+    }
+
+    try {
+      await axiosPrivate.post('/pengeluaran', {
+        jumlah: amt,
+        deskripsi: newExpense.desc
+      });
+      setNewExpense({ amount: '', desc: '' })
+      setShowExpenseModal(false)
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to add expense');
+    }
+  }, [newExpense, loadData])
+
+  const deleteExpense = useCallback(async (id) => {
+    if (!window.confirm('Delete this expense?')) return;
+    try {
+      await axiosPrivate.delete(`/pengeluaran/${id}`);
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete expense');
+    }
+  }, [loadData])
 
   const leaderboard = useMemo(() => {
-    const rows = (members || []).map(m => ({
-      id: m.id,
-      nama: m.nama,
-      paid: (payments[m.id] ? payments[m.id].size : 0),
-      kasAmount: m.kasAmount || 0,
-      role: m.role
-    }))
+    const rows = (members || []).map(m => {
+      const userPayments = payments[m.id] || new Map();
+      let paidCount = 0;
+      userPayments.forEach(v => { if (v.status === 'diterima') paidCount++; });
+
+      return {
+        id: m.id,
+        nama: m.nama,
+        paid: paidCount,
+        kasAmount: m.kasAmount || 0,
+        role: m.role
+      };
+    })
     return rows.sort((a, b) => b.paid - a.paid).slice(0, 5)
   }, [members, payments])
 
   const visibleMembers = useMemo(() => {
-    if (userRole === 'bendahara') return members
+    if (userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua') return members
     return members.filter(m => m.id === userId)
   }, [members, userRole, userId])
 
-  // Get current month for highlighting
-  const currentMonth = new Date().getMonth()
+  const currentMonthIdx = useMemo(() => new Date().getMonth(), [])
+
+  const handleManualToggle = useCallback(async (member, monthIdx) => {
+    if (userRole !== 'bendahara') return;
+
+    const userPayments = payments[member.id] || new Map();
+    const paymentData = userPayments.get(monthIdx);
+    const monthName = monthsFull[monthIdx];
+
+    try {
+      if (paymentData) {
+        if (window.confirm(`Delete payment status for ${member.nama} for ${monthName}?`)) {
+          await axiosPrivate.delete(`/kas/staff/${paymentData.id}`);
+          setPayments(prev => {
+            const newPayments = { ...prev };
+            const userMap = new Map(newPayments[member.id] || []);
+            userMap.delete(monthIdx);
+            newPayments[member.id] = userMap;
+            return newPayments;
+          });
+        }
+      } else {
+        const response = await axiosPrivate.post('/kas/manual', {
+          userId: member.id,
+          bulan: monthName,
+          jumlah: MONTHLY_FEE
+        });
+        const newPayment = response.data?.data;
+        setPayments(prev => {
+          const newPayments = { ...prev };
+          const userMap = new Map(newPayments[member.id] || []);
+          userMap.set(monthIdx, {
+            id: newPayment?.id || Date.now(),
+            status: 'diterima',
+            bukti: null,
+            pending: false
+          });
+          newPayments[member.id] = userMap;
+          return newPayments;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to toggle payment", error);
+      alert("Failed to change payment status");
+    }
+  }, [userRole, payments]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <section className="cash-page">
+        <div className="cash-loading">
+          <div className="loading-spinner"></div>
+          <p>Loading data...</p>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="cash-page">
       {/* Header */}
       <div className="cash-header">
-        <div className="header-content">
-          <h2>
-            <Wallet className="header-icon" size={28} />
-            Manajemen Uang Kas
-          </h2>
-          <p className="cash-sub">Kelola pembayaran dan pengeluaran kas kelas</p>
+        <div className="cash-header-content">
+          <h1>
+            <Wallet size={28} />
+            Cash Fund
+          </h1>
+          <p>Manage member cash payments and expenses</p>
         </div>
         <div className="cash-actions">
-          <button className="btn" onClick={() => setShowQris(true)}>
-            <QrCode size={18} />
-            QRIS Payment
-          </button>
-          <button className="btn primary" onClick={() => setShowExpenseModal(true)}>
-            <PlusCircle size={18} />
-            Tambah Pengeluaran
+          {(userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua') && (
+            <>
+              <button className="btn" onClick={() => setShowExpenseModal(true)}>
+                <MinusCircle size={16} />
+                Add Expense
+              </button>
+              {pendingPayments.length > 0 && (
+                <button className="btn primary" onClick={() => setShowVerificationModal(true)}>
+                  <AlertCircle size={16} />
+                  Verifikasi ({pendingPayments.length})
+                </button>
+              )}
+            </>
+          )}
+          <button className="btn primary" onClick={() => setShowQris(true)}>
+            <QrCode size={16} />
+            Pay Cash
           </button>
         </div>
       </div>
 
-      <div className="cash-grid">
-        {/* Left Content */}
+      {/* Stats */}
+      <div className="cash-stats">
+        <StatCard
+          title="Total Cash In"
+          value={totalIncome}
+          icon={TrendingUp}
+          variant="green"
+          trend="up"
+          trendValue="+12%"
+        />
+        <StatCard
+          title="Total Expenses"
+          value={totalExpenses}
+          icon={TrendingDown}
+          variant="red"
+          trend="down"
+          trendValue="-5%"
+        />
+        <StatCard
+          title="Current Balance"
+          value={balance}
+          icon={Wallet}
+          variant="blue"
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="cash-main">
         <div className="cash-left">
-          {/* Stats Cards */}
-          <div className="cards-row">
-            <StatCard
-              title="Total Pemasukan"
-              value={totalIncome}
-              icon={TrendingUp}
-              variant="total-income"
-              trend="up"
-              trendValue="+12%"
-            />
-            <StatCard
-              title="Total Pengeluaran"
-              value={totalExpenses}
-              icon={TrendingDown}
-              variant="total-expense"
-              trend="down"
-              trendValue="-5%"
-            />
-            <StatCard
-              title="Saldo Tersedia"
-              value={balance}
-              icon={Wallet}
-              variant="balance"
-            />
-          </div>
-
           {/* Payment Table */}
-          <div className="table-wrap">
-            <table className="kas-table">
-              <thead>
-                <tr>
-                  <th>Anggota</th>
-                  {months.map((m, i) => (
-                    <th
-                      key={m}
-                      title={monthsFull[i]}
-                      className={i === currentMonth ? 'current-month' : ''}
-                    >
-                      {m}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {visibleMembers.map((m, idx) => (
-                  <tr
-                    key={m.id}
-                    className={m.role === 'bendahara' ? 'row-bendahara' : ''}
-                    style={{ animationDelay: `${idx * 0.05}s` }}
-                  >
-                    <td>
-                      <div
-                        className="member-name"
-                        tabIndex={0}
-                        onClick={() => setSelectedMember(m)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') setSelectedMember(m) }}
-                        role="button"
-                        aria-label={`Lihat detail ${m.nama}`}
-                      >
-                        <div className="member-avatar">
-                          {String(m.nama || '')[0] || '?'}
-                        </div>
-                        <div className="member-info">
-                          <div className="member-main">
-                            {m.nama}
-                            {m.role === 'bendahara' && (
-                              <span className="badge accent-1">
-                                <Sparkles size={10} />
-                                Bendahara
-                              </span>
-                            )}
-                          </div>
-                          <div className="member-meta">
-                            <span className="payment-stat">
-                              <CheckCircle2 size={12} />
-                              {payments[m.id]?.size || 0} pembayaran
-                            </span>
-                            <span className="divider">•</span>
-                            <span>Rp {(m.kasAmount || 0).toLocaleString('id-ID')}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    {months.map((mm, idx) => {
-                      const paidSet = payments[m.id] || new Set()
-                      const checked = paidSet.has(idx)
-                      const canEdit = userRole === 'bendahara' || m.id === userId
-                      const tooltip = `${m.nama} — ${monthsFull[idx]}`
-                      const isCurrentMonth = idx === currentMonth
-
-                      return (
-                        <td key={mm} className={isCurrentMonth ? 'current-month-cell' : ''}>
-                          <label className="chk-wrap">
-                            <input
-                              className="chk-input"
-                              type="checkbox"
-                              checked={checked}
-                              disabled={!canEdit}
-                              onChange={() => togglePayment(m.id, idx)}
-                              aria-label={`${m.nama} ${monthsFull[idx]} pembayaran`}
-                            />
-                            <span
-                              className={`chk-circle ${checked ? 'checked' : ''} ${!canEdit ? 'disabled' : ''}`}
-                              data-tooltip={tooltip}
-                            />
-                          </label>
-                        </td>
-                      )
-                    })}
+          <div className="payment-table-card">
+            <div className="table-header">
+              <h3>
+                <Users size={18} />
+                Cash Payment Table
+              </h3>
+            </div>
+            <div className="table-wrap">
+              <table className="kas-table">
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    {months.map((m, i) => (
+                      <th key={m} title={monthsFull[i]} className={i === currentMonthIdx ? 'current-month' : ''}>
+                        {m}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {visibleMembers.map((m) => (
+                    <tr key={m.id} className={m.role === 'bendahara' || m.role === 'ketua' || m.role === 'sekretaris' || m.role === 'wakilKetua' ? 'row-bendahara' : ''}>
+                      <td>
+                        <div className="member-name">
+                          <div className="member-avatar">{String(m.nama || '')[0] || '?'}</div>
+                          <div className="member-info">
+                            <div className="member-main">
+                              <span className="name-text">{m.nama}</span>
+                              {(m.role === 'bendahara' || m.role === 'ketua' || m.role === 'sekretaris' || m.role === 'wakilKetua') && (
+                                <span className="badge accent-1">
+                                  {m.role === 'ketua' ? (
+                                    <>
+                                      <Sparkles size={8} />
+                                      <p>Chairman</p>
+                                    </>
+                                  ) : m.role === 'sekretaris' ? (
+                                    <>
+                                      <Sparkles size={8} />
+                                      <p>Secretary</p>
+                                    </>
+                                  ) : m.role === 'wakilKetua' ? (
+                                    <>
+                                      <Sparkles size={8} />
+                                      <p>Vice Chairman</p>
+                                    </>
+                                  ) : m.role === 'bendahara' ? (
+                                    <>
+                                      <Sparkles size={8} />
+                                      <p>Treasurer</p>
+                                    </>
+                                  ) : null}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      {months.map((mm, monthIdx) => {
+                        const userPayments = payments[m.id] || new Map();
+                        const paymentData = userPayments.get(monthIdx);
+                        const status = paymentData ? paymentData.status : null;
+                        const isPending = status === 'pending';
+                        const isPaid = status === 'diterima';
+                        const isCurrentMonth = monthIdx === currentMonthIdx;
+
+                        let tooltip = `${m.nama} — ${monthsFull[monthIdx]}`;
+                        if (isPending) tooltip += " (Waiting Verification)";
+                        if (isPaid) tooltip += " (Paid)";
+
+                        return (
+                          <td key={mm} className={isCurrentMonth ? 'current-month-cell' : ''}>
+                            <div
+                              className={`chk-wrap ${(userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua') ? 'cursor-pointer' : ''}`}
+                              onClick={() => handleManualToggle(m, monthIdx)}
+                              title={tooltip}
+                            >
+                              {isPaid ? (
+                                <div className="chk-circle checked"></div>
+                              ) : isPending ? (
+                                <div className="chk-circle pending">
+                                  <div className="pending-dot"></div>
+                                </div>
+                              ) : (
+                                <div className="chk-circle"></div>
+                              )}
+                            </div>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
+
+          {/* Expense List */}
+          {(userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua') && expenses.length > 0 && (
+            <div className="expense-section">
+              <h3 className="section-title">
+                <Receipt size={18} />
+                Expense List
+              </h3>
+              <div className="expense-list">
+                {expenses.map((exp) => (
+                  <div key={exp.id} className="expense-item">
+                    <div className="expense-info">
+                      <span className="expense-desc">{exp.desc}</span>
+                      <span className="expense-meta">
+                        {new Date(exp.tanggal).toLocaleDateString('en-US')} • {exp.user}
+                      </span>
+                    </div>
+                    <div className="expense-amount">
+                      <span>- Rp {exp.amount.toLocaleString('en-US')}</span>
+                      <button className="btn-delete" onClick={() => deleteExpense(exp.id)}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right Sidebar */}
-        <aside className="cash-right">
-          {/* Leaderboard */}
-          <div className="card leaderboard-card">
-            <div className="card-title">
-              <Trophy size={16} />
-              Top Pembayar
+        {/* Sidebar - Leaderboard */}
+        <div className="cash-right">
+          <div className="leaderboard-card">
+            <div className="leaderboard-header">
+              <Trophy size={18} className="trophy-icon" />
+              <h3>Leaderboard</h3>
             </div>
-            <ol className="leaderboard">
-              {leaderboard.map((l, idx) => (
+            <p className="leaderboard-subtitle">Top 5 members with most payments</p>
+            <ul className="leaderboard-list">
+              {leaderboard.map((m, idx) => (
                 <LeaderboardItem
-                  key={l.id}
-                  member={l}
+                  key={m.id}
+                  member={m}
                   rank={idx + 1}
-                  payments={payments}
+                  paidCount={m.paid}
                 />
               ))}
-            </ol>
-          </div>
-
-          {/* Expense Summary */}
-          <div className="card expenses-card">
-            <div className="card-title">
-              <Receipt size={16} />
-              Riwayat Pengeluaran
-            </div>
-            <ul className="expense-list">
-              {expenses.map((ex, idx) => (
-                <li key={ex.id} className="expense-item" style={{ animationDelay: `${idx * 0.1}s` }}>
-                  <div className="expense-info">
-                    <span className="expense-icon">
-                      <AlertCircle size={14} />
-                    </span>
-                    <span className="expense-desc">{ex.desc}</span>
-                  </div>
-                  <span className="expense-amount">
-                    - Rp {Number(ex.amount).toLocaleString('id-ID')}
-                  </span>
-                </li>
-              ))}
             </ul>
-            <div className="expense-total">
-              <span>Total Pengeluaran</span>
-              <strong>Rp {totalExpenses.toLocaleString('id-ID')}</strong>
-            </div>
           </div>
-        </aside>
+        </div>
       </div>
 
       {/* QRIS Modal */}
       {showQris && (
-        <div className="modal" role="dialog" aria-label="QRIS Gopay Merchant" onClick={() => setShowQris(false)}>
-          <div className="modal-inner" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowQris(false)} aria-label="Close">
-              <X size={20} />
+        <div className="modal-overlay" onClick={() => setShowQris(false)}>
+          <div className="modal-content qris-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowQris(false)}>
+              <X size={18} />
             </button>
-            <h3>
-              <QrCode size={24} />
-              QRIS Payment
-            </h3>
-            <p className="modal-subtitle">Scan kode QR untuk melakukan pembayaran</p>
-            <div className="qris-box">
-              <div className="qris-graphic">
-                <div className="qr-placeholder">
-                  <QrCode size={60} />
-                  <span>QR Code</span>
-                </div>
-              </div>
-              <div className="qris-info">
-                <div className="qris-detail">
-                  <span className="label">Merchant</span>
-                  <span className="value">DofE ST Bhinneka</span>
-                </div>
-                <div className="qris-detail">
-                  <span className="label">Gopay ID</span>
-                  <span className="value">0123456789</span>
-                </div>
-                <div className="qris-detail">
-                  <span className="label">Nominal</span>
-                  <span className="value highlight">Rp 50.000</span>
-                </div>
-                <div className="qris-note">
-                  <AlertCircle size={14} />
-                  <span>Ini adalah demo. Ganti dengan QR code merchant Anda.</span>
-                </div>
-              </div>
+            <h3>Cash Payment</h3>
+            <div className="qris-image">
+              <QrCode size={120} />
+              <p>Scan QRIS to pay</p>
             </div>
-            <div className="modal-actions">
-              <button className="btn" onClick={() => setShowQris(false)}>Tutup</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Member Detail Modal */}
-      {selectedMember && (
-        <div className="modal" role="dialog" aria-label="Member detail" onClick={() => setSelectedMember(null)}>
-          <div className="modal-inner member-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSelectedMember(null)} aria-label="Close">
-              <X size={20} />
-            </button>
-            <div className="member-modal-header">
-              <div className="member-avatar large">
-                {String(selectedMember.nama || '')[0]}
-              </div>
-              <div className="member-modal-info">
-                <h3>{selectedMember.nama}</h3>
-                <span className={`role-badge ${selectedMember.role}`}>
-                  {selectedMember.role === 'bendahara' ? (
-                    <><Sparkles size={12} /> Bendahara</>
-                  ) : (
-                    'Anggota'
-                  )}
-                </span>
-              </div>
-            </div>
-            <div className="member-stats">
-              <div className="stat-item">
-                <span className="stat-label">Total Pembayaran</span>
-                <span className="stat-value">
-                  {payments[selectedMember.id]?.size || 0} bulan
-                </span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Total Kontribusi</span>
-                <span className="stat-value">
-                  Rp {((payments[selectedMember.id]?.size || 0) * MONTHLY_FEE).toLocaleString('id-ID')}
-                </span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Bulan Belum Bayar</span>
-                <span className="stat-value warning">
-                  {12 - (payments[selectedMember.id]?.size || 0)} bulan
-                </span>
-              </div>
-            </div>
-            <div className="modal-actions">
-              <button className="btn" onClick={() => setSelectedMember(null)}>Tutup</button>
-              <button className="btn primary">Kirim Reminder</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Expense Modal */}
-      {showExpenseModal && (
-        <div className="modal" role="dialog" aria-label="Tambah Pengeluaran" onClick={() => setShowExpenseModal(false)}>
-          <div className="modal-inner" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowExpenseModal(false)} aria-label="Close">
-              <X size={20} />
-            </button>
-            <h3>
-              <PlusCircle size={24} />
-              Tambah Pengeluaran
-            </h3>
-            <p className="modal-subtitle">Catat pengeluaran kas baru</p>
-            <div className="form-group">
-              <label htmlFor="expense-desc">Deskripsi</label>
-              <input
-                id="expense-desc"
-                type="text"
-                placeholder="Masukkan deskripsi pengeluaran..."
-                value={newExpense.desc}
-                onChange={(e) => setNewExpense(s => ({ ...s, desc: e.target.value }))}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="expense-amount">Jumlah (Rp)</label>
-              <input
-                id="expense-amount"
-                type="number"
-                placeholder="Masukkan jumlah..."
-                value={newExpense.amount}
-                onChange={(e) => setNewExpense(s => ({ ...s, amount: e.target.value }))}
-              />
-            </div>
-            <div className="modal-actions">
-              <button className="btn" onClick={() => setShowExpenseModal(false)}>Batal</button>
-              <button className="btn primary" onClick={addExpense}>
-                <CheckCircle2 size={16} />
-                Simpan
+            <div className="payment-form">
+              <label>Select Month:</label>
+              <select value={paymentMonth} onChange={(e) => setPaymentMonth(Number(e.target.value))}>
+                {monthsFull.map((m, i) => (
+                  <option key={i} value={i}>{m}</option>
+                ))}
+              </select>
+              <label>Upload Payment Proof:</label>
+              <input type="file" accept="image/*" onChange={(e) => setPaymentFile(e.target.files[0])} />
+              <button className="btn primary" onClick={handleUploadPayment} style={{ marginTop: '8px' }}>
+                <Upload size={16} />
+                Submit Proof
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Expense Modal */}
+      {showExpenseModal && (
+        <div className="modal-overlay" onClick={() => setShowExpenseModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowExpenseModal(false)}>
+              <X size={18} />
+            </button>
+            <h3>Add Expense</h3>
+            <div className="expense-form">
+              <label>Description:</label>
+              <input
+                type="text"
+                placeholder="Example: Office supplies"
+                value={newExpense.desc}
+                onChange={(e) => setNewExpense({ ...newExpense, desc: e.target.value })}
+              />
+              <label>Amount (Rp):</label>
+              <input
+                type="number"
+                placeholder="Example: 50000"
+                value={newExpense.amount}
+                onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+              />
+              <button className="btn primary" onClick={addExpense} style={{ marginTop: '8px' }}>
+                <PlusCircle size={16} />
+                Add Expense
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Verification Modal */}
+      {showVerificationModal && (
+        <div className="modal-overlay" onClick={() => setShowVerificationModal(false)}>
+          <div className="modal-content verification-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowVerificationModal(false)}>
+              <X size={20} />
+            </button>
+            <h3>Payment Verification</h3>
+            <div className="verification-list">
+              {pendingPayments.map((payment) => (
+                <div key={payment.id} className="verification-item">
+                  <div className="verification-info">
+                    <strong>{payment.memberName}</strong>
+                    <span>{payment.bulan} — Rp {parseInt(payment.jumlah).toLocaleString('en-US')}</span>
+                  </div>
+                  {payment.bukti && (
+                    <a href={payment.bukti} target="_blank" rel="noopener noreferrer" className="btn-view">
+                      <Eye size={14} />
+                      View Proof
+                    </a>
+                  )}
+                  <div className="verification-actions">
+                    <button
+                      className="btn-accept"
+                      onClick={() => handleVerifyPayment(payment.id, 'diterima')}
+                    >
+                      <Check size={14} />
+                      Accept
+                    </button>
+                    <button
+                      className="btn-reject"
+                      onClick={() => handleVerifyPayment(payment.id, 'ditolak')}
+                    >
+                      <XCircle size={14} />
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
-  )
+  );
 }

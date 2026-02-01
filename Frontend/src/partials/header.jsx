@@ -1,14 +1,48 @@
 import '../styles/header.css';
 import { Sparkles, Bell, User } from 'lucide-react';
-import { useState, useRef, useEffect, useContext } from 'react';
+import { useState, useRef, useEffect, useContext, useMemo, useCallback, memo } from 'react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import ProfileDropdown from '../components/ProfileDropdown';
+import { AuthContext } from '../context/AuthProvider';
 
-const Header = () => {
+const Header = memo(function Header() {
     const [showNotif, setShowNotif] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
     const notifRef = useRef(null);
     const profileRef = useRef(null);
+
+    const { accessToken } = useContext(AuthContext);
+
+    // Decode JWT to get user info
+    const userInfo = useMemo(() => {
+        if (!accessToken) return { nama: 'Guest', role: 'anggota' };
+        try {
+            const base64Url = accessToken.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        } catch (e) {
+            return { nama: 'Guest', role: 'anggota' };
+        }
+    }, [accessToken]);
+
+    const userName = userInfo.nama || 'Guest';
+    const userRole = userInfo.role || 'anggota';
+
+    // Format role for display
+    const formatRole = useCallback((role) => {
+        const roleMap = {
+            'ketua': 'Chairman',
+            'wakilKetua': 'Vice Chairman',
+            'sekretaris': 'Secretary',
+            'admin': 'Admin',
+            'bendahara': 'Treasurer',
+            'anggota': 'Member'
+        };
+        return roleMap[role] || role;
+    }, []);
 
     useEffect(() => {
         const onDocClick = (e) => {
@@ -23,11 +57,20 @@ const Header = () => {
         return () => document.removeEventListener('click', onDocClick);
     }, []);
 
-    const notifications = [
-        { title: 'Pembayaran kas diterima', time: '2 jam lalu' },
-        { title: 'Pengajuan anggota baru', time: '1 hari lalu' },
-    ];
+    const notifications = useMemo(() => [
+        { title: 'Cash payment received', time: '2 hours ago' },
+        { title: 'New member application', time: '1 day ago' },
+    ], []);
 
+    const toggleNotif = useCallback((e) => {
+        e.stopPropagation();
+        setShowNotif(s => !s);
+    }, []);
+
+    const toggleProfile = useCallback((e) => {
+        e.stopPropagation();
+        setShowProfile(s => !s);
+    }, []);
 
     return (
         <header className="header">
@@ -38,22 +81,25 @@ const Header = () => {
 
             <div className="header-actions">
                 <div className="notif-wrap" ref={notifRef}>
-                    <button className="icon-btn" aria-label="Notifications" onClick={(e) => { e.stopPropagation(); setShowNotif(s => !s); }}>
-                        <Bell className="bell" size={18} />
+                    <button className="icon-btn" aria-label="Notifications" onClick={toggleNotif}>
+                        <Bell className="bell" size={20} />
                     </button>
                     {showNotif && <NotificationDropdown items={notifications} />}
                 </div>
 
                 <div className="profile-wrap" ref={profileRef}>
-                    <button className="profile-btn" aria-label="Profile" onClick={(e) => { e.stopPropagation(); setShowProfile(s => !s); }}>
-                        <div className="avatar">D</div>
-                        <span className="profile-name">Dummy</span>
+                    <button className="profile-btn" aria-label="Profile" onClick={toggleProfile}>
+                        <div className="avatar">{userName[0]?.toUpperCase() || 'G'}</div>
+                        <div className="profile-info">
+                            <span className="profile-name">{userName}</span>
+                            <span className="profile-role">{formatRole(userRole)}</span>
+                        </div>
                     </button>
                     {showProfile && <ProfileDropdown />}
                 </div>
             </div>
         </header>
     );
-}
+});
 
 export default Header;

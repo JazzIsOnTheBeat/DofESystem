@@ -12,12 +12,9 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 0 28px;
-	background: rgba(15, 15, 26, 0.8);
-	backdrop-filter: blur(20px);
-	-webkit-backdrop-filter: blur(20px);
+	background: var(--theme-bg-secondary);
 	border-bottom: 1px solid var(--theme-glass-border);
 	z-index: 5;
-	transition: all var(--theme-transition-normal);
 }
 
 .header-inner {
@@ -36,12 +33,6 @@
 
 .header .icon {
 	color: var(--theme-accent-primary);
-	transition: all var(--theme-transition-fast);
-}
-
-.header .icon:hover {
-	transform: translateY(-2px) rotate(-8deg) scale(1.1);
-	filter: drop-shadow(0 0 8px var(--theme-accent-glow));
 }
 
 /* Header Actions */
@@ -62,18 +53,25 @@
 	border-radius: var(--theme-radius-md);
 	cursor: pointer;
 	transition: all var(--theme-transition-fast);
+	padding: 0;
 }
 
 .icon-btn:hover {
 	background: var(--theme-glass-hover);
 	border-color: var(--theme-accent-primary);
-	transform: translateY(-2px);
-	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .icon-btn .bell {
-	color: var(--theme-text-secondary);
+	width: 20px;
+	height: 20px;
+	color: var(--theme-text-primary);
 	transition: color var(--theme-transition-fast);
+}
+
+.icon-btn svg {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
 }
 
 .icon-btn:hover .bell {
@@ -117,6 +115,22 @@
 	font-size: 0.9rem;
 	font-weight: 500;
 	color: var(--theme-text-primary);
+	line-height: 1.2;
+}
+
+.profile-info {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+}
+
+.profile-role {
+	font-size: 0.7rem;
+	font-weight: 500;
+	color: var(--theme-accent-primary);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
 }
 
 /* Dropdown Wrappers */

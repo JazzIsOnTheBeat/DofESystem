@@ -13,7 +13,7 @@
     overflow: hidden;
 }
 
-/* Decorative Background */
+/* Decorative Background - Simplified */
 .login-page::before {
     content: '';
     position: absolute;
@@ -21,9 +21,8 @@
     height: 600px;
     right: -10%;
     top: -20%;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 60%);
     pointer-events: none;
-    animation: pulse 8s ease-in-out infinite;
 }
 
 .login-page::after {
@@ -33,9 +32,8 @@
     height: 500px;
     left: -10%;
     bottom: -20%;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
     pointer-events: none;
-    animation: pulse 6s ease-in-out infinite reverse;
 }
 
 /* Split Layout */
@@ -49,14 +47,11 @@
     gap: 0;
     align-items: stretch;
     margin: 0 auto;
-    background: var(--theme-glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: var(--theme-bg-secondary);
     border: 1px solid var(--theme-glass-border);
     border-radius: var(--theme-radius-xl);
     overflow: hidden;
     box-shadow: var(--theme-shadow-lg);
-    animation: scaleIn 0.5s ease-out;
     position: relative;
     z-index: 1;
 }
