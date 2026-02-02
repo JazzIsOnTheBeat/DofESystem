@@ -7,7 +7,6 @@ import { Op } from "sequelize";
 export const Register = async (req, res) => {
     const { nama, nim, password, confPass, role } = req.body;
     
-    // Check if user has permission (only pengurus can add members)
     const userRole = req.role;
     const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
     if (!pengurusRoles.includes(userRole)) {
@@ -45,7 +44,6 @@ export const Register = async (req, res) => {
             role: role,
         });
         
-        // Create audit log
         await createAuditLog(
             'user_created',
             `Anggota baru "${nama}" dengan NIM ${nim} telah didaftarkan`,
@@ -67,7 +65,6 @@ export const Login = async (req, res) => {
     try {
         const { nim, password } = req.body;
 
-        // Validate input
         if (!nim || !password) {
             return res.status(400).json({ msg: "NIM dan Password harus diisi" });
         }
@@ -78,7 +75,6 @@ export const Login = async (req, res) => {
             }
         });
 
-        // Bila NIM user tidak ada
         if (!user) {
             return res.status(404).json({ msg: "User tidak ditemukan" });
         }
@@ -114,9 +110,6 @@ export const Login = async (req, res) => {
             sameSite: 'lax',
         });
 
-        // Store user role and id for frontend
-        
-        // Create login audit log
         await createAuditLog(
             'login',
             `User ${nama} berhasil login ke sistem`,
@@ -206,7 +199,6 @@ export const changePass = async (req, res) => {
 
 }
 
-// Update user (pengurus only)
 export const updateUser = async (req, res) => {
     try {
         const userRole = req.role;
@@ -227,7 +219,6 @@ export const updateUser = async (req, res) => {
         const updateData = {};
         if (nama) updateData.nama = nama;
         if (nim) {
-            // Check if NIM already exists for another user
             const existingNim = await Users.findOne({ where: { nim, id: { [Op.ne]: id } } });
             if (existingNim) {
                 return res.status(409).json({ msg: "NIM sudah digunakan oleh user lain" });
@@ -242,7 +233,6 @@ export const updateUser = async (req, res) => {
         
         await Users.update(updateData, { where: { id } });
         
-        // Create audit log
         await createAuditLog(
             'user_updated',
             `Data anggota "${user.nama}" telah diupdate`,
@@ -259,7 +249,6 @@ export const updateUser = async (req, res) => {
     }
 };
 
-// Delete user (pengurus only)
 export const deleteUser = async (req, res) => {
     try {
         const userRole = req.role;
@@ -271,7 +260,6 @@ export const deleteUser = async (req, res) => {
         
         const { id } = req.params;
         
-        // Prevent deleting self
         if (parseInt(id) === req.userId) {
             return res.status(400).json({ msg: "Tidak dapat menghapus akun sendiri" });
         }
@@ -285,7 +273,6 @@ export const deleteUser = async (req, res) => {
         
         await Users.destroy({ where: { id } });
         
-        // Create audit log
         await createAuditLog(
             'user_deleted',
             `Anggota "${deletedUserName}" telah dihapus dari sistem`,

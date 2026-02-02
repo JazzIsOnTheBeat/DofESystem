@@ -1,9 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-// Translations
 const translations = {
   en: {
-    // Common
     save: 'Save',
     cancel: 'Cancel',
     delete: 'Delete',
@@ -16,14 +14,12 @@ const translations = {
     yes: 'Yes',
     no: 'No',
     
-    // Roles
     chairman: 'Chairman',
     viceChairman: 'Vice Chairman',
     secretary: 'Secretary',
     treasurer: 'Treasurer',
     member: 'Member',
     
-    // Sidebar
     dashboard: 'Dashboard',
     cash: 'Cash',
     members: 'Members',
@@ -31,21 +27,18 @@ const translations = {
     auditLogs: 'Audit Logs',
     settings: 'Settings',
     
-    // Header
     notifications: 'Notifications',
     noNotifications: 'No notifications',
     clearAll: 'Clear all',
     logout: 'Log out',
     logoutSuccess: 'Logout successful',
     
-    // Login
     signIn: 'Sign In',
     processing: 'Processing...',
     loginFailed: 'Login failed',
     loginSuccess: 'Login successful',
     networkError: 'A network error occurred',
     
-    // Settings
     settingsTitle: 'Settings',
     appearance: 'Appearance',
     darkMode: 'Dark Mode',
@@ -56,7 +49,6 @@ const translations = {
     english: 'English',
     indonesian: 'Indonesian',
     
-    // Home
     goodMorning: 'Good Morning',
     goodAfternoon: 'Good Afternoon',
     goodEvening: 'Good Evening',
@@ -104,7 +96,6 @@ const translations = {
     daysAgo: 'days ago',
     loadingDashboard: 'Loading dashboard...',
     
-    // Cash
     cashFund: 'Cash Fund',
     managePaymentsExpenses: 'Manage member cash payments and expenses',
     addExpense: 'Add Expense',
@@ -140,7 +131,6 @@ const translations = {
     failedChangePaymentStatus: 'Failed to change payment status',
     loadingData: 'Loading data...',
     
-    // Members
     memberList: 'Member List',
     manageViewMembers: 'Manage and view all DofE ST Bhinneka members',
     addMember: 'Add Member',
@@ -177,7 +167,6 @@ const translations = {
     failedUpdateMember: 'Failed to update member',
     loadingMemberData: 'Loading member data...',
     
-    // Audit Logs
     auditLogsTitle: 'Audit Logs',
     monitorActivities: 'Monitor all activities in the system',
     pengurusOnly: 'Leadership Only',
@@ -205,18 +194,15 @@ const translations = {
     accessDeniedMessage: 'This page can only be accessed by leadership (Chairman, Vice Chairman, Secretary, Treasurer).',
     loadingAuditLogs: 'Loading audit logs...',
     
-    // Not Found
     pageNotFound: 'Page Not Found',
     pageNotFoundMessage: 'Sorry, the page you are looking for is not available or has been moved.',
     backToHome: 'Back to Home',
     previousPage: 'Previous Page',
     
-    // Work In Progress
     underDevelopment: 'Under Development',
     underDevelopmentMessage: 'This feature is currently under development and will be available soon. Thank you for your patience!',
     estimated: 'Estimated: Coming Soon',
 
-    // Months
     january: 'January',
     february: 'February',
     march: 'March',
@@ -231,7 +217,6 @@ const translations = {
     december: 'December',
   },
   id: {
-    // Common
     save: 'Simpan',
     cancel: 'Batal',
     delete: 'Hapus',
@@ -244,14 +229,12 @@ const translations = {
     yes: 'Ya',
     no: 'Tidak',
     
-    // Roles
     chairman: 'Ketua',
     viceChairman: 'Wakil Ketua',
     secretary: 'Sekretaris',
     treasurer: 'Bendahara',
     member: 'Anggota',
     
-    // Sidebar
     dashboard: 'Dashboard',
     cash: 'Kas',
     members: 'Anggota',
@@ -259,21 +242,18 @@ const translations = {
     auditLogs: 'Log Audit',
     settings: 'Pengaturan',
     
-    // Header
     notifications: 'Notifikasi',
     noNotifications: 'Tidak ada notifikasi',
     clearAll: 'Hapus semua',
     logout: 'Keluar',
     logoutSuccess: 'Logout berhasil',
     
-    // Login
     signIn: 'Masuk',
     processing: 'Memproses...',
     loginFailed: 'Login gagal',
     loginSuccess: 'Login berhasil',
     networkError: 'Terjadi kesalahan jaringan',
     
-    // Settings
     settingsTitle: 'Pengaturan',
     appearance: 'Tampilan',
     darkMode: 'Mode Gelap',
@@ -284,7 +264,6 @@ const translations = {
     english: 'Inggris',
     indonesian: 'Indonesia',
     
-    // Home
     goodMorning: 'Selamat Pagi',
     goodAfternoon: 'Selamat Siang',
     goodEvening: 'Selamat Sore',
@@ -332,7 +311,6 @@ const translations = {
     daysAgo: 'hari lalu',
     loadingDashboard: 'Memuat dashboard...',
     
-    // Cash
     cashFund: 'Uang Kas',
     managePaymentsExpenses: 'Kelola pembayaran kas anggota dan pengeluaran',
     addExpense: 'Tambah Pengeluaran',
@@ -368,7 +346,6 @@ const translations = {
     failedChangePaymentStatus: 'Gagal mengubah status pembayaran',
     loadingData: 'Memuat data...',
     
-    // Members
     memberList: 'Daftar Anggota',
     manageViewMembers: 'Kelola dan lihat semua anggota DofE ST Bhinneka',
     addMember: 'Tambah Anggota',
@@ -405,7 +382,6 @@ const translations = {
     failedUpdateMember: 'Gagal mengupdate anggota',
     loadingMemberData: 'Memuat data anggota...',
     
-    // Audit Logs
     auditLogsTitle: 'Log Audit',
     monitorActivities: 'Pantau semua aktivitas dalam sistem',
     pengurusOnly: 'Khusus Pengurus',
@@ -433,18 +409,15 @@ const translations = {
     accessDeniedMessage: 'Halaman ini hanya dapat diakses oleh pengurus (Ketua, Wakil Ketua, Sekretaris, Bendahara).',
     loadingAuditLogs: 'Memuat audit logs...',
     
-    // Not Found
     pageNotFound: 'Halaman Tidak Ditemukan',
     pageNotFoundMessage: 'Maaf, halaman yang Anda cari tidak tersedia atau telah dipindahkan.',
     backToHome: 'Kembali ke Beranda',
     previousPage: 'Halaman Sebelumnya',
     
-    // Work In Progress
     underDevelopment: 'Sedang Dalam Pengembangan',
     underDevelopmentMessage: 'Fitur ini sedang dalam proses pengembangan dan akan segera tersedia. Terima kasih atas kesabaran Anda!',
     estimated: 'Perkiraan: Segera Hadir',
 
-    // Months
     january: 'Januari',
     february: 'Februari',
     march: 'Maret',

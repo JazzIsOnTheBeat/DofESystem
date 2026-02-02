@@ -9,7 +9,6 @@ export default function PageTransition({ children }) {
   const prevLocationRef = useRef(location.pathname);
 
   useEffect(() => {
-    // Only animate if path actually changed
     if (prevLocationRef.current !== location.pathname) {
       setTransitionStage('exit');
       
@@ -17,7 +16,7 @@ export default function PageTransition({ children }) {
         setDisplayChildren(children);
         setTransitionStage('enter');
         prevLocationRef.current = location.pathname;
-      }, 150); // Short exit duration
+      }, 150);
 
       return () => clearTimeout(exitTimer);
     } else {

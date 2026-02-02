@@ -24,17 +24,9 @@ function App() {
       <div className="main-content">
         {!isLogin && <Header />}
         <Routes>
-          {/* Public Route */}
           <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes */}
           <Route element={<RequireAuth><Sidebar /><Header /><div className="main-content"><Footer /></div></RequireAuth>} />
-          {/* Note: The above structure is tricky because Sidebar/Header are outside Routes. 
-                I need to re-structure App to wrap protected components properly. 
-                Let's use a Layout component or wrap individual elements.
-                Given current structure: Sidebar/Header/Footer are conditional on !isLogin.
-                I will wrap the lazy way: wrap the element prop. 
-            */}
           <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
           <Route path="/cash" element={<RequireAuth><Cash /></RequireAuth>} />
           <Route path="/members" element={<RequireAuth><Members /></RequireAuth>} />
@@ -43,7 +35,6 @@ function App() {
           <Route path="/summary" element={<RequireAuth><Summary /></RequireAuth>} />
           <Route path="/work-in-progress" element={<RequireAuth><WorkInProgress /></RequireAuth>} />
           
-          {/* 404 Route - Must be last */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

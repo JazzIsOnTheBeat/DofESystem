@@ -1,6 +1,7 @@
 import React, { useEffect, useState, memo, useContext, useMemo, useCallback } from 'react';
 import { axiosPrivate } from '../api/axios';
 import { AuthContext } from '../context/AuthProvider';
+import { useLanguage } from '../context/LanguageContext';
 import {
   FileText,
   Search,
@@ -21,28 +22,27 @@ import {
 } from 'lucide-react';
 import '../styles/auditlogs.css';
 
-// Action type config
 const actionConfig = {
-  payment_created: { icon: Wallet, label: 'Payment Created', color: 'blue' },
-  payment_verified: { icon: CheckCircle, label: 'Payment Verified', color: 'green' },
-  payment_rejected: { icon: XCircle, label: 'Payment Rejected', color: 'red' },
-  payment_deleted: { icon: Trash2, label: 'Payment Deleted', color: 'red' },
-  user_created: { icon: UserPlus, label: 'User Created', color: 'blue' },
-  user_updated: { icon: Edit, label: 'User Updated', color: 'yellow' },
-  expense_created: { icon: Wallet, label: 'Expense Created', color: 'orange' },
-  expense_deleted: { icon: Trash2, label: 'Expense Deleted', color: 'red' },
-  login: { icon: User, label: 'Login', color: 'green' },
-  logout: { icon: User, label: 'Logout', color: 'gray' },
-  default: { icon: FileText, label: 'Activity', color: 'default' }
+  payment_created: { icon: Wallet, labelKey: 'paymentCreated', color: 'blue' },
+  payment_verified: { icon: CheckCircle, labelKey: 'paymentVerified', color: 'green' },
+  payment_rejected: { icon: XCircle, labelKey: 'paymentRejected', color: 'red' },
+  payment_deleted: { icon: Trash2, labelKey: 'paymentDeleted', color: 'red' },
+  user_created: { icon: UserPlus, labelKey: 'userCreated', color: 'blue' },
+  user_updated: { icon: Edit, labelKey: 'userUpdated', color: 'yellow' },
+  expense_created: { icon: Wallet, labelKey: 'expenseCreated', color: 'orange' },
+  expense_deleted: { icon: Trash2, labelKey: 'expenseDeleted', color: 'red' },
+  login: { icon: User, labelKey: 'login', color: 'green' },
+  logout: { icon: User, labelKey: 'logout', color: 'gray' },
+  default: { icon: FileText, labelKey: 'activity', color: 'default' }
 };
 
-const LogItem = memo(function LogItem({ log }) {
+const LogItem = memo(function LogItem({ log, t, language }) {
   const config = actionConfig[log.action] || actionConfig.default;
   const ActionIcon = config.icon;
   
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -58,7 +58,7 @@ const LogItem = memo(function LogItem({ log }) {
       </div>
       <div className="log-content">
         <div className="log-header">
-          <span className="log-action">{config.label}</span>
+          <span className="log-action">{t(config.labelKey)}</span>
           <span className="log-time">
             <Clock size={12} />
             {formatDate(log.createdAt)}
@@ -107,6 +107,7 @@ const AuditLogs = () => {
   const logsPerPage = 15;
 
   const { accessToken, isLoading: authLoading } = useContext(AuthContext);
+  const { t, language } = useLanguage();
 
   const userRole = useMemo(() => {
     if (!accessToken) return null;
@@ -157,7 +158,6 @@ const AuditLogs = () => {
     }
   }, [hasAccess]);
 
-  // Initial load
   useEffect(() => {
     if (authLoading) return;
     if (!accessToken || !hasAccess) {
@@ -170,10 +170,21 @@ const AuditLogs = () => {
   }, [accessToken, authLoading, hasAccess, fetchLogs, fetchStats]);
 
   useEffect(() => {
+    const handleFocus = () => {
+      if (accessToken && !authLoading && hasAccess) {
+        fetchLogs();
+        fetchStats();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [accessToken, authLoading, hasAccess, fetchLogs, fetchStats]);
+
+  useEffect(() => {
     setCurrentPage(1);
   }, [filterAction, searchQuery]);
 
-  // Handlers
   const handlePrevPage = useCallback(() => {
     setCurrentPage(p => Math.max(1, p - 1));
   }, []);
@@ -187,7 +198,7 @@ const AuditLogs = () => {
       <div className="audit-page">
         <div className="audit-loading">
           <div className="loading-spinner"></div>
-          <p>Loading audit logs...</p>
+          <p>{t('loadingAuditLogs')}</p>
         </div>
       </div>
     );
@@ -198,8 +209,8 @@ const AuditLogs = () => {
       <div className="audit-page">
         <div className="access-denied">
           <Shield size={64} />
-          <h2>Access Denied</h2>
-          <p>This page can only be accessed by leadership (Chairman, Vice Chairman, Secretary, Treasurer).</p>
+          <h2>{t('accessDenied')}</h2>
+          <p>{t('accessDeniedMessage')}</p>
         </div>
       </div>
     );
@@ -207,36 +218,33 @@ const AuditLogs = () => {
 
   return (
     <div className="audit-page">
-      {/* Header */}
       <div className="audit-header">
         <div className="header-content">
           <h1>
             <FileText size={28} />
-            Audit Logs
+            {t('auditLogsTitle')}
           </h1>
-          <p className="header-subtitle">Monitor all activities in the system</p>
+          <p className="header-subtitle">{t('monitorActivities')}</p>
         </div>
         <div className="header-badge">
           <Shield size={14} />
-          Pengurus Only
+          {t('pengurusOnly')}
         </div>
       </div>
 
-      {/* Stats */}
       <div className="audit-stats">
-        <StatsCard icon={FileText} label="Total Logs" value={stats.total} color="blue" />
-        <StatsCard icon={Calendar} label="Today" value={stats.today} color="green" />
-        <StatsCard icon={Wallet} label="Payments" value={stats.payments} color="purple" />
-        <StatsCard icon={CheckCircle} label="Verifications" value={stats.verifications} color="orange" />
+        <StatsCard icon={FileText} label={t('totalLogs')} value={stats.total} color="blue" />
+        <StatsCard icon={Calendar} label={t('today')} value={stats.today} color="green" />
+        <StatsCard icon={Wallet} label={t('payments')} value={stats.payments} color="purple" />
+        <StatsCard icon={CheckCircle} label={t('verifications')} value={stats.verifications} color="orange" />
       </div>
 
-      {/* Toolbar */}
       <div className="audit-toolbar">
         <div className="search-box">
           <Search size={18} />
           <input
             type="text"
-            placeholder="Search activities..."
+            placeholder={t('searchActivities')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -244,33 +252,31 @@ const AuditLogs = () => {
         <div className="filter-box">
           <Filter size={16} />
           <select value={filterAction} onChange={(e) => setFilterAction(e.target.value)}>
-            <option value="all">All Activities</option>
-            <option value="payment_created">Payment Created</option>
-            <option value="payment_verified">Payment Verified</option>
-            <option value="payment_rejected">Payment Rejected</option>
-            <option value="expense_created">Expense</option>
+            <option value="all">{t('allActivities')}</option>
+            <option value="payment_created">{t('paymentCreated')}</option>
+            <option value="payment_verified">{t('paymentVerified')}</option>
+            <option value="payment_rejected">{t('paymentRejected')}</option>
+            <option value="expense_created">{t('expenseCreated')}</option>
             <option value="login">Login</option>
           </select>
         </div>
       </div>
 
-      {/* Logs List */}
       <div className="audit-logs-container">
         {logs.length > 0 ? (
           <div className="logs-list">
             {logs.map(log => (
-              <LogItem key={log.id} log={log} />
+              <LogItem key={log.id} log={log} t={t} language={language} />
             ))}
           </div>
         ) : (
           <div className="no-logs">
             <AlertTriangle size={48} />
-            <p>No logs found</p>
+            <p>{t('noLogsFound')}</p>
           </div>
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="audit-pagination">
           <button 
@@ -279,17 +285,17 @@ const AuditLogs = () => {
             disabled={currentPage === 1}
           >
             <ChevronLeft size={18} />
-            Previous
+            {t('previous')}
           </button>
           <span className="pagination-info">
-            Page {currentPage} of {totalPages}
+            {t('page')} {currentPage} {t('of')} {totalPages}
           </span>
           <button 
             className="pagination-btn"
             onClick={handleNextPage}
             disabled={currentPage === totalPages}
           >
-            Next
+            {t('next')}
             <ChevronRight size={18} />
           </button>
         </div>

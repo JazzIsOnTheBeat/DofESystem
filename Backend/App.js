@@ -12,7 +12,6 @@ import dotenv from "dotenv";
 dotenv.config()
 const app = express()
 
-// Global error handlers
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
 });

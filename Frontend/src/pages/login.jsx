@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ToastContext } from '../context/ToastContext'
 import { AuthContext } from '../context/AuthProvider'
+import { useLanguage } from '../context/LanguageContext'
 import '../styles/login.css'
 import { Eye, EyeOff } from 'lucide-react'
 
@@ -12,6 +13,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const { showToast } = useContext(ToastContext)
   const { login } = useContext(AuthContext)
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   const submit = async (e) => {
@@ -20,13 +22,13 @@ export default function Login() {
     try {
       const result = await login({ nim, password })
       if (!result.success) {
-        showToast(result.error || 'Login failed', 'error')
+        showToast(result.error || t('loginFailed'), 'error')
         return
       }
-      showToast('Login successful', 'success')
+      showToast(t('loginSuccess'), 'success')
       navigate('/')
     } catch (err) {
-      showToast('A network error occurred', 'error')
+      showToast(t('networkError'), 'error')
     } finally {
       setLoading(false)
     }
@@ -43,14 +45,14 @@ export default function Login() {
           </div>
         </aside>
 
-        <main className="login-panel" role="main" aria-label="Sign in">
+        <main className="login-panel" role="main" aria-label={t('signIn')}>
           <form className="panel-card" onSubmit={submit}>
-            <h2 className="panel-title">Sign In</h2>
+            <h2 className="panel-title">{t('signIn')}</h2>
 
             <label className="field-label" htmlFor="nim">NIM</label>
             <input className="field-input" id="nim" value={nim} onChange={(e) => setNim(e.target.value)} required />
 
-            <label className="field-label" htmlFor="password" style={{ marginTop: 12 }}>Password</label>
+            <label className="field-label" htmlFor="password" style={{ marginTop: 12 }}>{t('password')}</label>
             <div className="input-with-action">
               <input
                 className="field-input"
@@ -63,7 +65,7 @@ export default function Login() {
 
             <div style={{ marginTop: 20 }}>
               <button className="btn-primary full rounded-full" type="submit" disabled={loading}>
-                {loading ? 'Processing...' : 'Sign In'}
+                {loading ? t('processing') : t('signIn')}
               </button>
             </div>
           </form>

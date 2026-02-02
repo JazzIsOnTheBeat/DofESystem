@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useContext, useMemo, useCallback, memo } f
 import NotificationDropdown from '../components/NotificationDropdown';
 import ProfileDropdown from '../components/ProfileDropdown';
 import { AuthContext } from '../context/AuthProvider';
+import { useLanguage } from '../context/LanguageContext';
 
 const Header = memo(function Header() {
     const [showNotif, setShowNotif] = useState(false);
@@ -12,8 +13,8 @@ const Header = memo(function Header() {
     const profileRef = useRef(null);
 
     const { accessToken } = useContext(AuthContext);
+    const { t, formatRole } = useLanguage();
 
-    // Decode JWT to get user info
     const userInfo = useMemo(() => {
         if (!accessToken) return { nama: 'Guest', role: 'anggota' };
         try {
@@ -30,19 +31,6 @@ const Header = memo(function Header() {
 
     const userName = userInfo.nama || 'Guest';
     const userRole = userInfo.role || 'anggota';
-
-    // Format role for display
-    const formatRole = useCallback((role) => {
-        const roleMap = {
-            'ketua': 'Chairman',
-            'wakilKetua': 'Vice Chairman',
-            'sekretaris': 'Secretary',
-            'admin': 'Admin',
-            'bendahara': 'Treasurer',
-            'anggota': 'Member'
-        };
-        return roleMap[role] || role;
-    }, []);
 
     useEffect(() => {
         const onDocClick = (e) => {
@@ -81,7 +69,7 @@ const Header = memo(function Header() {
 
             <div className="header-actions">
                 <div className="notif-wrap" ref={notifRef}>
-                    <button className="icon-btn" aria-label="Notifications" onClick={toggleNotif}>
+                    <button className="icon-btn" aria-label={t('notifications')} onClick={toggleNotif}>
                         <Bell className="bell" size={20} />
                     </button>
                     {showNotif && <NotificationDropdown items={notifications} />}

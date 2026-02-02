@@ -1,7 +1,6 @@
 import AuditLog from "../Models/ModelAuditLog.js";
 import { Op } from "sequelize";
 
-// Get all audit logs (pengurus only)
 export const getAuditLogs = async (req, res) => {
     try {
         const userRole = req.role;
@@ -15,12 +14,10 @@ export const getAuditLogs = async (req, res) => {
         
         const whereClause = {};
         
-        // Filter by action type
         if (action && action !== 'all') {
             whereClause.action = action;
         }
         
-        // Search filter
         if (search) {
             whereClause[Op.or] = [
                 { description: { [Op.like]: `%${search}%` } },
@@ -29,7 +26,6 @@ export const getAuditLogs = async (req, res) => {
             ];
         }
         
-        // Date range filter
         if (startDate && endDate) {
             whereClause.createdAt = {
                 [Op.between]: [new Date(startDate), new Date(endDate)]
@@ -57,7 +53,6 @@ export const getAuditLogs = async (req, res) => {
     }
 };
 
-// Get audit log stats
 export const getAuditStats = async (req, res) => {
     try {
         const userRole = req.role;

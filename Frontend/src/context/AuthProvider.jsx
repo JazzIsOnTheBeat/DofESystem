@@ -12,21 +12,18 @@ export const AuthContext = createContext({
 
 export default function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null)
-  const [isLoading, setIsLoading] = useState(true) // Loading state for initial auth check
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Try to refresh token on initial load
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem('accessToken');
       if (storedToken) {
-        // Try to refresh the token to validate session
         try {
           const response = await axiosInstance.get('/refreshToken');
           const newToken = response.data.accessToken;
           setAccessToken(newToken);
           localStorage.setItem('accessToken', newToken);
         } catch (err) {
-          // Refresh failed - clear invalid token
           console.log('Token refresh failed on init, clearing...');
           localStorage.removeItem('accessToken');
           setAccessToken(null);
@@ -39,13 +36,11 @@ export default function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // keep localStorage and state in sync
     const onStorage = () => setAccessToken(localStorage.getItem('accessToken'))
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
   }, [])
 
-  // Axios Interceptor for Refresh Token
   useEffect(() => {
     const requestIntercept = axiosPrivate.interceptors.request.use(
       config => {
@@ -61,7 +56,6 @@ export default function AuthProvider({ children }) {
       async (error) => {
         const prevRequest = error?.config;
         const status = error?.response?.status;
-        // Handle both 401 (Unauthorized) and 403 (Forbidden) for token refresh
         if ((status === 401 || status === 403) && !prevRequest?.sent) {
           prevRequest.sent = true;
           try {
@@ -72,7 +66,6 @@ export default function AuthProvider({ children }) {
             prevRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
             return axiosPrivate(prevRequest);
           } catch (err) {
-            // Refresh failed - clear token and redirect to login
             console.log('Session expired, redirecting to login...');
             setAccessToken(null);
             localStorage.removeItem('accessToken');
@@ -124,7 +117,6 @@ export default function AuthProvider({ children }) {
 
   const getAuthHeader = useCallback(() => ({ Authorization: accessToken ? `Bearer ${accessToken}` : '' }), [accessToken])
 
-  // Show loading while checking auth
   if (isLoading) {
     return (
       <div style={{ 

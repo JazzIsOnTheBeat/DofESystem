@@ -101,7 +101,6 @@ export const statusKas = async (req, res) => {
             where: { id, id }
         });
         
-        // Get user info for audit log
         const user = await Users.findByPk(kas.userId);
         const actionType = Status === 'diterima' ? 'payment_verified' : 'payment_rejected';
         await createAuditLog(

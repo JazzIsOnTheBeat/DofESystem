@@ -1,9 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Home, ArrowLeft, Search } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import '../styles/notfound.css';
 
 const NotFound = () => {
+  const { t } = useLanguage();
+  
   return (
     <div className="notfound-page">
       <div className="notfound-content">
@@ -11,17 +14,17 @@ const NotFound = () => {
           <div className="error-code">404</div>
         </div>
         
-        <h1>Page Not Found</h1>
-        <p>Sorry, the page you are looking for is not available or has been moved.</p>
+        <h1>{t('pageNotFound')}</h1>
+        <p>{t('pageNotFoundMessage')}</p>
         
         <div className="notfound-actions">
           <Link to="/" className="btn-primary">
             <Home size={18} />
-            Back to Home
+            {t('backToHome')}
           </Link>
           <button onClick={() => window.history.back()} className="btn-secondary">
             <ArrowLeft size={18} />
-            Previous Page
+            {t('previousPage')}
           </button>
         </div>
       </div>

@@ -20,19 +20,18 @@ import {
   EyeOff
 } from 'lucide-react';
 import { AuthContext } from '../context/AuthProvider';
+import { useLanguage } from '../context/LanguageContext';
 import '../styles/members.css';
 
-// Role config with icons and colors
 const roleConfig = {
-  ketua: { icon: Crown, label: 'Chairman', color: 'gold' },
-  wakilKetua: { icon: Shield, label: 'Vice Chairman', color: 'silver' },
-  sekretaris: { icon: BookOpen, label: 'Secretary', color: 'blue' },
-  bendahara: { icon: Briefcase, label: 'Treasurer', color: 'green' },
-  anggota: { icon: User, label: 'Member', color: 'default' }
+  ketua: { icon: Crown, labelKey: 'chairman', color: 'gold' },
+  wakilKetua: { icon: Shield, labelKey: 'viceChairman', color: 'silver' },
+  sekretaris: { icon: BookOpen, labelKey: 'secretary', color: 'blue' },
+  bendahara: { icon: Briefcase, labelKey: 'treasurer', color: 'green' },
+  anggota: { icon: User, labelKey: 'member', color: 'default' }
 };
 
-// Memoized Member Card
-const MemberCard = memo(function MemberCard({ member, isCurrentUser, isPengurus, onEdit, onDelete }) {
+const MemberCard = memo(function MemberCard({ member, isCurrentUser, isPengurus, onEdit, onDelete, t }) {
   const config = roleConfig[member.role] || roleConfig.anggota;
   const RoleIcon = config.icon;
   
@@ -41,15 +40,15 @@ const MemberCard = memo(function MemberCard({ member, isCurrentUser, isPengurus,
       {isCurrentUser && (
         <div className="current-user-badge">
           <UserCheck size={12} />
-          You
+          {t('you')}
         </div>
       )}
       {isPengurus && !isCurrentUser && (
         <div className="member-actions">
-          <button className="action-btn edit" onClick={() => onEdit(member)} title="Edit">
+          <button className="action-btn edit" onClick={() => onEdit(member)} title={t('edit')}>
             <Edit2 size={14} />
           </button>
-          <button className="action-btn delete" onClick={() => onDelete(member)} title="Delete">
+          <button className="action-btn delete" onClick={() => onDelete(member)} title={t('delete')}>
             <Trash2 size={14} />
           </button>
         </div>
@@ -61,7 +60,7 @@ const MemberCard = memo(function MemberCard({ member, isCurrentUser, isPengurus,
         <h3 className="member-name">{member.nama}</h3>
         <div className={`member-role ${config.color}`}>
           <RoleIcon size={12} />
-          <span>{config.label}</span>
+          <span>{t(config.labelKey)}</span>
         </div>
       </div>
       <div className="member-details">
@@ -76,7 +75,6 @@ const MemberCard = memo(function MemberCard({ member, isCurrentUser, isPengurus,
   );
 });
 
-// Stats Card
 const StatsCard = memo(function StatsCard({ icon: Icon, label, value, color }) {
   return (
     <div className={`members-stat ${color}`}>
@@ -105,8 +103,8 @@ const Members = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { accessToken, isLoading: authLoading } = useContext(AuthContext);
+  const { t } = useLanguage();
 
-  // Get current user ID and role from token
   const { currentUserId, userRole } = useMemo(() => {
     if (!accessToken) return { currentUserId: null, userRole: null };
     try {
@@ -118,13 +116,11 @@ const Members = () => {
     } catch { return { currentUserId: null, userRole: null }; }
   }, [accessToken]);
 
-  // Check if user is pengurus
   const isPengurus = useMemo(() => {
     const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
     return pengurusRoles.includes(userRole);
   }, [userRole]);
 
-  // Fetch members
   const fetchMembers = useCallback(async () => {
     try {
       const response = await axiosPrivate.get('/users');
@@ -145,7 +141,17 @@ const Members = () => {
     fetchMembers();
   }, [accessToken, authLoading, fetchMembers]);
 
-  // Filter and search members
+  useEffect(() => {
+    const handleFocus = () => {
+      if (accessToken && !authLoading) {
+        fetchMembers();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [accessToken, authLoading, fetchMembers]);
+
   const filteredMembers = useMemo(() => {
     return members.filter(member => {
       const matchesSearch = member.nama?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -155,7 +161,6 @@ const Members = () => {
     });
   }, [members, searchQuery, filterRole]);
 
-  // Sort members: leadership first, then alphabetically
   const sortedMembers = useMemo(() => {
     const roleOrder = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara', 'anggota'];
     return [...filteredMembers].sort((a, b) => {
@@ -166,7 +171,6 @@ const Members = () => {
     });
   }, [filteredMembers]);
 
-  // Stats
   const stats = useMemo(() => {
     const total = members.length;
     const leadership = members.filter(m => ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'].includes(m.role)).length;
@@ -174,14 +178,12 @@ const Members = () => {
     return { total, leadership, anggota };
   }, [members]);
 
-  // Handle Add Member
   const handleAdd = useCallback(() => {
     setFormData({ nama: '', nim: '', password: '', confPass: '', role: 'anggota' });
     setFormError('');
     setShowAddModal(true);
   }, []);
 
-  // Handle Edit Member
   const handleEdit = useCallback((member) => {
     setSelectedMember(member);
     setFormData({ nama: member.nama, nim: member.nim, password: '', confPass: '', role: member.role });
@@ -189,51 +191,62 @@ const Members = () => {
     setShowEditModal(true);
   }, []);
 
-  // Handle Delete Member
   const handleDelete = useCallback((member) => {
     setSelectedMember(member);
     setShowDeleteModal(true);
   }, []);
 
-  // Submit Add Member
   const submitAdd = useCallback(async (e) => {
     e.preventDefault();
     setFormError('');
     
     if (!formData.nama || !formData.nim || !formData.password) {
-      setFormError('Name, NIM, and Password are required');
+      setFormError(t('nameNIMPasswordRequired'));
       return;
     }
     
     if (formData.password !== formData.confPass) {
-      setFormError('Password and Confirm Password do not match');
+      setFormError(t('passwordMismatch'));
       return;
     }
 
     setFormLoading(true);
     try {
-      await axiosPrivate.post('/register', formData);
+      const response = await axiosPrivate.post('/register', formData);
+      
+      const newMember = response.data?.user || {
+        id: Date.now(),
+        nama: formData.nama,
+        nim: formData.nim,
+        role: formData.role
+      };
+      
+      setMembers(prev => [...prev, {
+        id: newMember.id,
+        nama: newMember.nama || formData.nama,
+        nim: newMember.nim || formData.nim,
+        role: newMember.role || formData.role
+      }]);
+      
       setShowAddModal(false);
-      fetchMembers();
     } catch (err) {
-      setFormError(err.response?.data?.msg || 'Failed to add member');
+      setFormError(err.response?.data?.msg || t('failedAddMember'));
     } finally {
       setFormLoading(false);
     }
-  }, [formData, fetchMembers]);
+  }, [formData, t]);
 
-  // Submit Edit Member
   const submitEdit = useCallback(async (e) => {
     e.preventDefault();
     setFormError('');
     
     if (!formData.nama || !formData.nim) {
-      setFormError('Name and NIM are required');
+      setFormError(t('nameNIMRequired'));
       return;
     }
     
     if (formData.password && formData.password !== formData.confPass) {
-      setFormError('Password and Confirm Password do not match');
+      setFormError(t('passwordMismatch'));
       return;
     }
 
@@ -244,35 +257,42 @@ const Members = () => {
         updateData.password = formData.password;
       }
       await axiosPrivate.patch(`/users/${selectedMember.id}`, updateData);
+      
+      setMembers(prev => prev.map(m => 
+        m.id === selectedMember.id 
+          ? { ...m, nama: formData.nama, nim: formData.nim, role: formData.role }
+          : m
+      ));
+      
       setShowEditModal(false);
-      fetchMembers();
     } catch (err) {
-      setFormError(err.response?.data?.msg || 'Failed to update member');
+      setFormError(err.response?.data?.msg || t('failedUpdateMember'));
     } finally {
       setFormLoading(false);
     }
-  }, [formData, selectedMember, fetchMembers]);
+  }, [formData, selectedMember, t]);
 
-  // Submit Delete Member
   const submitDelete = useCallback(async () => {
     setFormLoading(true);
     try {
       await axiosPrivate.delete(`/users/${selectedMember.id}`);
+      
+      setMembers(prev => prev.filter(m => m.id !== selectedMember.id));
+      
       setShowDeleteModal(false);
-      fetchMembers();
     } catch (err) {
       console.error('Failed to delete member:', err);
     } finally {
       setFormLoading(false);
     }
-  }, [selectedMember, fetchMembers]);
+  }, [selectedMember]);
 
   if (loading) {
     return (
       <div className="members-page">
         <div className="members-loading">
           <div className="loading-spinner"></div>
-          <p>Loading member data...</p>
+          <p>{t('loadingMemberData')}</p>
         </div>
       </div>
     );
@@ -280,37 +300,34 @@ const Members = () => {
 
   return (
     <div className="members-page">
-      {/* Header */}
       <div className="members-header">
         <div className="header-content">
           <h1>
             <Users size={28} />
-            Member List
+            {t('memberList')}
           </h1>
-          <p className="header-subtitle">Manage and view all DofE ST Bhinneka members</p>
+          <p className="header-subtitle">{t('manageViewMembers')}</p>
         </div>
         {isPengurus && (
           <button className="add-member-btn" onClick={handleAdd}>
             <Plus size={18} />
-            Add Member
+            {t('addMember')}
           </button>
         )}
       </div>
 
-      {/* Stats Row */}
       <div className="members-stats">
-        <StatsCard icon={Users} label="Total Members" value={stats.total} color="blue" />
-        <StatsCard icon={Crown} label="Leadership" value={stats.leadership} color="gold" />
-        <StatsCard icon={User} label="Regular Members" value={stats.anggota} color="default" />
+        <StatsCard icon={Users} label={t('totalMembers')} value={stats.total} color="blue" />
+        <StatsCard icon={Crown} label={t('leadership')} value={stats.leadership} color="gold" />
+        <StatsCard icon={User} label={t('regularMembers')} value={stats.anggota} color="default" />
       </div>
 
-      {/* Search and Filter */}
       <div className="members-toolbar">
         <div className="search-box">
           <Search size={18} />
           <input
             type="text"
-            placeholder="Search name or NIM..."
+            placeholder={t('searchNameNIM')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -318,17 +335,16 @@ const Members = () => {
         <div className="filter-box">
           <Filter size={16} />
           <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
-            <option value="all">All Roles</option>
-            <option value="ketua">Chairman</option>
-            <option value="wakilKetua">Vice Chairman</option>
-            <option value="sekretaris">Secretary</option>
-            <option value="bendahara">Treasurer</option>
-            <option value="anggota">Member</option>
+            <option value="all">{t('allRoles')}</option>
+            <option value="ketua">{t('chairman')}</option>
+            <option value="wakilKetua">{t('viceChairman')}</option>
+            <option value="sekretaris">{t('secretary')}</option>
+            <option value="bendahara">{t('treasurer')}</option>
+            <option value="anggota">{t('member')}</option>
           </select>
         </div>
       </div>
 
-      {/* Members Grid */}
       <div className="members-grid">
         {sortedMembers.length > 0 ? (
           sortedMembers.map((member) => (
@@ -339,22 +355,22 @@ const Members = () => {
               isPengurus={isPengurus}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              t={t}
             />
           ))
         ) : (
           <div className="no-results">
             <Users size={48} />
-            <p>No members found</p>
+            <p>{t('noMembersFound')}</p>
           </div>
         )}
       </div>
 
-      {/* Add Member Modal */}
       {showAddModal && (
         <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><Plus size={20} /> Add New Member</h2>
+              <h2><Plus size={20} /> {t('addNewMember')}</h2>
               <button className="modal-close" onClick={() => setShowAddModal(false)}>
                 <X size={20} />
               </button>
@@ -362,12 +378,12 @@ const Members = () => {
             <form onSubmit={submitAdd}>
               {formError && <div className="form-error">{formError}</div>}
               <div className="form-group">
-                <label>Full Name</label>
+                <label>{t('fullName')}</label>
                 <input
                   type="text"
                   value={formData.nama}
                   onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                  placeholder="Enter full name"
+                  placeholder={t('enterFullName')}
                 />
               </div>
               <div className="form-group">
@@ -376,30 +392,30 @@ const Members = () => {
                   type="text"
                   value={formData.nim}
                   onChange={(e) => setFormData({ ...formData, nim: e.target.value })}
-                  placeholder="Enter NIM"
+                  placeholder={t('enterNIM')}
                 />
               </div>
               <div className="form-group">
-                <label>Role</label>
+                <label>{t('role')}</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 >
-                  <option value="anggota">Member</option>
-                  <option value="ketua">Chairman</option>
-                  <option value="wakilKetua">Vice Chairman</option>
-                  <option value="sekretaris">Secretary</option>
-                  <option value="bendahara">Treasurer</option>
+                  <option value="anggota">{t('member')}</option>
+                  <option value="ketua">{t('chairman')}</option>
+                  <option value="wakilKetua">{t('viceChairman')}</option>
+                  <option value="sekretaris">{t('secretary')}</option>
+                  <option value="bendahara">{t('treasurer')}</option>
                 </select>
               </div>
               <div className="form-group">
-                <label>Password</label>
+                <label>{t('password')}</label>
                 <div className="input-with-action">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Enter password"
+                    placeholder={t('enterPassword')}
                   />
                   <button type="button" className="show-pass" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -407,20 +423,20 @@ const Members = () => {
                 </div>
               </div>
               <div className="form-group">
-                <label>Confirm Password</label>
+                <label>{t('confirmPassword')}</label>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={formData.confPass}
                   onChange={(e) => setFormData({ ...formData, confPass: e.target.value })}
-                  placeholder="Confirm password"
+                  placeholder={t('confirmPasswordPlaceholder')}
                 />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowAddModal(false)}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
-                  {formLoading ? 'Saving...' : 'Save'}
+                  {formLoading ? t('saving') : t('save')}
                 </button>
               </div>
             </form>
@@ -428,12 +444,11 @@ const Members = () => {
         </div>
       )}
 
-      {/* Edit Member Modal */}
       {showEditModal && (
         <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><Edit2 size={20} /> Edit Member</h2>
+              <h2><Edit2 size={20} /> {t('editMember')}</h2>
               <button className="modal-close" onClick={() => setShowEditModal(false)}>
                 <X size={20} />
               </button>
@@ -441,12 +456,12 @@ const Members = () => {
             <form onSubmit={submitEdit}>
               {formError && <div className="form-error">{formError}</div>}
               <div className="form-group">
-                <label>Full Name</label>
+                <label>{t('fullName')}</label>
                 <input
                   type="text"
                   value={formData.nama}
                   onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                  placeholder="Enter full name"
+                  placeholder={t('enterFullName')}
                 />
               </div>
               <div className="form-group">
@@ -455,30 +470,30 @@ const Members = () => {
                   type="text"
                   value={formData.nim}
                   onChange={(e) => setFormData({ ...formData, nim: e.target.value })}
-                  placeholder="Enter NIM"
+                  placeholder={t('enterNIM')}
                 />
               </div>
               <div className="form-group">
-                <label>Role</label>
+                <label>{t('role')}</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 >
-                  <option value="anggota">Member</option>
-                  <option value="ketua">Chairman</option>
-                  <option value="wakilKetua">Vice Chairman</option>
-                  <option value="sekretaris">Secretary</option>
-                  <option value="bendahara">Treasurer</option>
+                  <option value="anggota">{t('member')}</option>
+                  <option value="ketua">{t('chairman')}</option>
+                  <option value="wakilKetua">{t('viceChairman')}</option>
+                  <option value="sekretaris">{t('secretary')}</option>
+                  <option value="bendahara">{t('treasurer')}</option>
                 </select>
               </div>
               <div className="form-group">
-                <label>New Password (leave empty if not changing)</label>
+                <label>{t('newPassword')}</label>
                 <div className="input-with-action">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Enter new password"
+                    placeholder={t('enterNewPassword')}
                   />
                   <button type="button" className="show-pass" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -486,20 +501,20 @@ const Members = () => {
                 </div>
               </div>
               <div className="form-group">
-                <label>Confirm New Password</label>
+                <label>{t('confirmNewPassword')}</label>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={formData.confPass}
                   onChange={(e) => setFormData({ ...formData, confPass: e.target.value })}
-                  placeholder="Confirm new password"
+                  placeholder={t('confirmNewPasswordPlaceholder')}
                 />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
-                  {formLoading ? 'Saving...' : 'Save Changes'}
+                  {formLoading ? t('saving') : t('saveChanges')}
                 </button>
               </div>
             </form>
@@ -507,27 +522,26 @@ const Members = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
           <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><Trash2 size={20} /> Delete Member</h2>
+              <h2><Trash2 size={20} /> {t('deleteMember')}</h2>
               <button className="modal-close" onClick={() => setShowDeleteModal(false)}>
                 <X size={20} />
               </button>
             </div>
             <div className="delete-confirm">
-              <p>Are you sure you want to delete member:</p>
+              <p>{t('confirmDeleteMember')}</p>
               <strong>{selectedMember?.nama}</strong>
-              <p className="warning-text">This action cannot be undone!</p>
+              <p className="warning-text">{t('actionCannotBeUndone')}</p>
             </div>
             <div className="modal-actions">
               <button type="button" className="btn-secondary" onClick={() => setShowDeleteModal(false)}>
-                Cancel
+                {t('cancel')}
               </button>
               <button type="button" className="btn-danger" onClick={submitDelete} disabled={formLoading}>
-                {formLoading ? 'Deleting...' : 'Delete'}
+                {formLoading ? t('deleting') : t('delete')}
               </button>
             </div>
           </div>
