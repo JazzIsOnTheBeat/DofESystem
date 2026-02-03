@@ -1,14 +1,12 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    // baseURL: 'backenddofe.jass-production.me',
-    baseURL: 'http://localhost:3000',
+    baseURL: 'backenddofe.jass-production.me',
     withCredentials: true
 });
 
 export const axiosPrivate = axios.create({
-    // baseURL: 'backenddofe.jass-production.me',
-    baseURL: 'http://localhost:3000',
+    baseURL: 'backenddofe.jass-production.me',
     headers: { 'Content-Type': 'application/json' },
     withCredentials: true
 });
