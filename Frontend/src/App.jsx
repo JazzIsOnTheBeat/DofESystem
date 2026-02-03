@@ -3,6 +3,7 @@ import Sidebar from './partials/sidebar';
 import Header from './partials/header';
 import Footer from './partials/footer';
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import Home from './pages/Home';
 import Cash from './pages/Cash';
 import Members from './pages/Members';
@@ -18,11 +19,12 @@ import RequirePengurus from './components/RequirePengurus';
 function App() {
   const location = useLocation()
   const isLogin = location.pathname === '/login'
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
-    <div className={`App ${isLogin ? 'no-sidebar' : ''}`}>
-      {!isLogin && <Sidebar />}
+    <div className={`App ${isLogin ? 'no-sidebar' : ''} ${mobileMenuOpen ? 'mobile-menu-open' : ''}`}>
+      {!isLogin && <Sidebar isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />}
       <div className="main-content">
-        {!isLogin && <Header />}
+        {!isLogin && <Header onMenuToggle={() => setMobileMenuOpen(s => !s)} />}
         <Routes>
           <Route path="/login" element={<Login />} />
 

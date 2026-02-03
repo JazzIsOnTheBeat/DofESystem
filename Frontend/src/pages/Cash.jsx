@@ -109,6 +109,7 @@ export default function Cash() {
   const [paymentMonth, setPaymentMonth] = useState(new Date().getMonth())
 
   const [isLoading, setIsLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const { accessToken, isLoading: authLoading } = useContext(AuthContext);
   const { t, formatRole, getMonthsArray, language } = useLanguage();
@@ -393,9 +394,19 @@ export default function Cash() {
   }, [members, payments])
 
   const visibleMembers = useMemo(() => {
-    if (userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua') return members
-    return members.filter(m => m.id === userId)
-  }, [members, userRole, userId])
+    const isStaff = (userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua')
+    let base = isStaff ? members : members.filter(m => m.id === userId)
+
+    const q = (searchQuery || '').trim().toLowerCase()
+    if (!q) return base
+
+    return base.filter(m => {
+      const name = (m.nama || '').toLowerCase()
+      const email = (m.email || '').toLowerCase()
+      const idstr = String(m.id || '')
+      return name.includes(q) || email.includes(q) || idstr.includes(q)
+    })
+  }, [members, userRole, userId, searchQuery])
 
   const currentMonthIdx = useMemo(() => new Date().getMonth(), [])
 
@@ -532,11 +543,21 @@ export default function Cash() {
         <div className="cash-left">
           <div className="payment-table-card">
             <div className="table-header">
-              <h3>
-                <Users size={18} />
-                {t('cashPaymentTable')}
-              </h3>
-            </div>
+                <h3>
+                  <Users size={18} />
+                  {t('cashPaymentTable')}
+                </h3>
+                {userRole === 'bendahara' && (
+                  <div className="table-search">
+                    <input
+                      type="search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={t('Search Members') || 'Search members'}
+                    />
+                  </div>
+                )}
+              </div>
             <div className="table-wrap">
               <table className="kas-table">
                 <thead>

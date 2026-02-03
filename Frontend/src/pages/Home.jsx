@@ -11,6 +11,7 @@ import {
   Clock,
   ChevronRight,
   Sparkles,
+  Settings,
   Target,
   Award,
   Bell,
@@ -331,6 +332,13 @@ const Home = () => {
               to="/members"
               color="secondary"
             />
+              <QuickAction
+                icon={Settings}
+                title={t('settings')}
+                desc={t('openSettings')}
+                to="/settings"
+                color="muted"
+              />
             {userRole === 'bendahara' && (
               <QuickAction
                 icon={TrendingUp}

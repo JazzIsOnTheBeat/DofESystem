@@ -23,47 +23,45 @@ const Settings = memo(function Settings() {
         <SettingsIcon /> {t('settingsTitle')}
       </h1>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 max-w-md transition-colors duration-300 mb-4">
-        <h2 className="text-lg font-semibold mb-4 dark:text-gray-100">{t('appearance')}</h2>
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 dark:text-gray-200">
-            {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
-            {t('darkMode')}
-          </span>
-          <button
-            onClick={handleToggle}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${isDarkMode ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'
-              }`}
-          >
-            {isDarkMode ? t('on') : t('off')}
-          </button>
-        </div>
-      </div>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 max-w-md transition-colors duration-300 settings-card">
+        <div className="settings-row">
+          <div className="settings-item">
+            <span className="flex items-center gap-2 dark:text-gray-200">
+              {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
+              {t('darkMode')}
+            </span>
+            <button
+              onClick={handleToggle}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${isDarkMode ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'
+                }`}
+            >
+              {isDarkMode ? t('on') : t('off')}
+            </button>
+          </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 max-w-md transition-colors duration-300">
-        <h2 className="text-lg font-semibold mb-4 dark:text-gray-100">{t('language')}</h2>
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 dark:text-gray-200">
-            <Globe size={18} />
-            {t('selectLanguage')}
-          </span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleLanguageChange('en')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                language === 'en' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-              }`}
-            >
-              English
-            </button>
-            <button
-              onClick={() => handleLanguageChange('id')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                language === 'id' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-              }`}
-            >
-              Indonesia
-            </button>
+          <div className="settings-item">
+            <span className="flex items-center gap-2 dark:text-gray-200">
+              <Globe size={18} />
+              {t('selectLanguage')}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleLanguageChange('en')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  language === 'en' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => handleLanguageChange('id')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  language === 'id' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                }`}
+              >
+                Indonesia
+              </button>
+            </div>
           </div>
         </div>
       </div>

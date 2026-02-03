@@ -1,7 +1,3 @@
-/* ============================================================
-   WORK IN PROGRESS PAGE
-   ============================================================ */
-
 .wip-page {
   display: flex;
   align-items: center;
@@ -28,7 +24,6 @@
   }
 }
 
-/* Illustration */
 .wip-illustration {
   position: relative;
   margin-bottom: 2rem;
@@ -59,7 +54,6 @@
   }
 }
 
-/* Decorations */
 .wip-decorations {
   position: absolute;
   inset: 0;
@@ -101,7 +95,6 @@
   }
 }
 
-/* Text */
 .wip-content h1 {
   font-size: 1.75rem;
   font-weight: 700;
@@ -116,7 +109,6 @@
   line-height: 1.6;
 }
 
-/* Info Badge */
 .wip-info {
   display: inline-flex;
   align-items: center;
@@ -134,7 +126,6 @@
   color: var(--theme-accent-primary);
 }
 
-/* Actions */
 .wip-actions {
   display: flex;
   flex-direction: column;
@@ -181,7 +172,6 @@
   border-color: var(--theme-accent-primary);
 }
 
-/* Responsive */
 @media (max-width: 480px) {
   .wip-icon-wrapper {
     width: 100px;

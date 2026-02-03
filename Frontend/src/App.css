@@ -1,10 +1,6 @@
-/* ============================================================
-   APP LAYOUT - Main Application Structure
-   ============================================================ */
 @import './styles/theme.css';
 @import './styles/layout.css';
 
-/* App Container */
 .App {
   min-height: 100vh;
   position: relative;
@@ -13,7 +9,11 @@
   display: flex;
 }
 
-/* Main Content Area */
+.mobile-menu-open .main-content {
+  overflow: hidden;
+  touch-action: none;
+}
+
 .main-content {
   flex: 1;
   margin-left: var(--sidebar-width);
@@ -25,7 +25,6 @@
   overflow-x: hidden;
 }
 
-/* No Sidebar Mode (Login page) */
 .no-sidebar .main-content {
   margin-left: 0;
   margin-top: 0;
@@ -45,7 +44,6 @@
   display: none;
 }
 
-/* Responsive Layout */
 @media (max-width: 900px) {
   :root {
     --sidebar-width: 72px;
@@ -64,10 +62,14 @@
 @media (max-width: 600px) {
   :root {
     --sidebar-width: 0px;
+    --footer-height: 56px;
+    margin-bottom: 50px;
   }
 
   .main-content {
     margin-left: 0;
-    padding-bottom: 80px;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    min-height: auto;
   }
 }

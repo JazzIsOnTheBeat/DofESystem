@@ -1,34 +1,24 @@
-/* ============================================================
-   GLOBAL THEME - Dark Glassmorphism Design System
-   Shared across all pages and components
-   ============================================================ */
 
-/* Import Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ============================================================
-   CSS VARIABLES - DESIGN TOKENS
-   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
-    /* Core Colors - Light Mode (Default) */
     --theme-bg-primary: #f8fafc;
     --theme-bg-secondary: #ffffff;
     --theme-bg-tertiary: #f1f5f9;
     --theme-bg-elevated: #ffffff;
 
-    /* Glass Effects */
     --theme-glass: rgba(255, 255, 255, 0.7);
     --theme-glass-border: rgba(0, 0, 0, 0.05);
     --theme-glass-hover: rgba(0, 0, 0, 0.03);
     --theme-glass-active: rgba(0, 0, 0, 0.05);
 
-    /* Accent Colors */
     --theme-accent-primary: #4f46e5;
     --theme-accent-secondary: #7c3aed;
     --theme-accent-tertiary: #9333ea;
     --theme-accent-glow: rgba(79, 70, 229, 0.15);
 
-    /* Status Colors */
     --theme-success: #059669;
     --theme-success-glow: rgba(5, 150, 105, 0.1);
     --theme-danger: #dc2626;
@@ -38,57 +28,48 @@
     --theme-info: #0891b2;
     --theme-info-glow: rgba(8, 145, 178, 0.1);
 
-    /* Text Colors */
     --theme-text-primary: #0f172a;
     --theme-text-secondary: #475569;
     --theme-text-muted: #94a3b8;
     --theme-text-disabled: #cbd5e1;
 
-    /* Shadows */
     --theme-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
     --theme-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     --theme-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     --theme-shadow-glow: 0 0 20px rgba(79, 70, 229, 0.15);
 
-    /* Transitions */
     --theme-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     --theme-transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --theme-transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     --theme-transition-spring: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-    /* Border Radius */
     --theme-radius-sm: 8px;
     --theme-radius-md: 12px;
     --theme-radius-lg: 16px;
     --theme-radius-xl: 24px;
     --theme-radius-full: 9999px;
 
-    /* Layout */
     --sidebar-width: 260px;
     --header-height: 64px;
     --footer-height: 48px;
 }
 
 .dark {
-    /* Core Colors - Dark Mode */
     --theme-bg-primary: #0f0f1a;
     --theme-bg-secondary: #14141f;
     --theme-bg-tertiary: #1a1a2e;
     --theme-bg-elevated: #1e1e30;
 
-    /* Glass Effects */
     --theme-glass: rgba(255, 255, 255, 0.03);
     --theme-glass-border: rgba(255, 255, 255, 0.08);
     --theme-glass-hover: rgba(255, 255, 255, 0.06);
     --theme-glass-active: rgba(255, 255, 255, 0.1);
 
-    /* Accent Colors - More vibrant on dark */
     --theme-accent-primary: #6366f1;
     --theme-accent-secondary: #8b5cf6;
     --theme-accent-tertiary: #a855f7;
     --theme-accent-glow: rgba(99, 102, 241, 0.3);
 
-    /* Status Colors */
     --theme-success: #10b981;
     --theme-success-glow: rgba(16, 185, 129, 0.2);
     --theme-danger: #ef4444;
@@ -98,22 +79,17 @@
     --theme-info: #06b6d4;
     --theme-info-glow: rgba(6, 182, 212, 0.2);
 
-    /* Text Colors */
     --theme-text-primary: #ffffff;
     --theme-text-secondary: rgba(255, 255, 255, 0.7);
     --theme-text-muted: rgba(255, 255, 255, 0.5);
     --theme-text-disabled: rgba(255, 255, 255, 0.3);
 
-    /* Shadows - Stronger for dark mode depth */
     --theme-shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.3);
     --theme-shadow-md: 0 8px 40px rgba(0, 0, 0, 0.4);
     --theme-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
     --theme-shadow-glow: 0 0 40px var(--theme-accent-glow);
 }
 
-/* ============================================================
-   GLOBAL RESET & BASE STYLES
-   ============================================================ */
 *,
 *::before,
 *::after {
@@ -136,9 +112,6 @@ body {
     min-height: 100vh;
 }
 
-/* ============================================================
-   GLOBAL KEYFRAME ANIMATIONS
-   ============================================================ */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -243,9 +216,6 @@ body {
     }
 }
 
-/* ============================================================
-   GLOBAL UTILITY CLASSES
-   ============================================================ */
 .glass-card {
     background: var(--theme-glass);
     border: 1px solid var(--theme-glass-border);
@@ -263,9 +233,6 @@ body {
     background-clip: text;
 }
 
-/* ============================================================
-   GLOBAL SCROLLBAR STYLING
-   ============================================================ */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -284,9 +251,6 @@ body {
     background: var(--theme-accent-secondary);
 }
 
-/* ============================================================
-   ACCESSIBILITY
-   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
 
     *,
@@ -303,7 +267,6 @@ body {
     outline-offset: 2px;
 }
 
-/* Selection color */
 ::selection {
     background: rgba(99, 102, 241, 0.3);
     color: var(--theme-text-primary);
