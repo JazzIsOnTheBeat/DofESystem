@@ -28,6 +28,7 @@ const roleConfig = {
   wakilKetua: { icon: Shield, labelKey: 'viceChairman', color: 'silver' },
   sekretaris: { icon: BookOpen, labelKey: 'secretary', color: 'blue' },
   bendahara: { icon: Briefcase, labelKey: 'treasurer', color: 'green' },
+  admin: { icon: Shield, labelKey: 'admin', color: 'red' },
   anggota: { icon: User, labelKey: 'member', color: 'default' }
 };
 
@@ -117,7 +118,7 @@ const Members = () => {
   }, [accessToken]);
 
   const isPengurus = useMemo(() => {
-    const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
+    const pengurusRoles = ['ketua', 'wakilKetua', 'admin'];
     return pengurusRoles.includes(userRole);
   }, [userRole]);
 
@@ -173,7 +174,7 @@ const Members = () => {
 
   const stats = useMemo(() => {
     const total = members.length;
-    const leadership = members.filter(m => ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'].includes(m.role)).length;
+    const leadership = members.filter(m => ['ketua', 'wakilKetua'].includes(m.role)).length;
     const anggota = members.filter(m => m.role === 'anggota').length;
     return { total, leadership, anggota };
   }, [members]);
@@ -402,6 +403,7 @@ const Members = () => {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 >
                   <option value="anggota">{t('member')}</option>
+                  <option value="admin">{t('admin')}</option>
                   <option value="ketua">{t('chairman')}</option>
                   <option value="wakilKetua">{t('viceChairman')}</option>
                   <option value="sekretaris">{t('secretary')}</option>
@@ -480,6 +482,7 @@ const Members = () => {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 >
                   <option value="anggota">{t('member')}</option>
+                  <option value="admin">{t('admin')}</option>
                   <option value="ketua">{t('chairman')}</option>
                   <option value="wakilKetua">{t('viceChairman')}</option>
                   <option value="sekretaris">{t('secretary')}</option>
