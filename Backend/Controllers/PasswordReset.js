@@ -39,7 +39,7 @@ export const requestReset = async (req, res) => {
             { expiresIn: '30m' }
         );
 
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+        const resetLink = `${process.env.FRONTEND_URL || 'https://dofe.jass-production.me'}/reset-password/${resetToken}`;
 
         const mailOptions = {
             from: `"DofE System" <${process.env.EMAIL_USER}>`,
