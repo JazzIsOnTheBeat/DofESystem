@@ -1,11 +1,14 @@
 import '../styles/header.css';
 import { Sparkles, Bell, User } from 'lucide-react';
 import { useState, useRef, useEffect, useContext, useMemo, useCallback, memo } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import NotificationDropdown from '../components/NotificationDropdown';
 import ProfileDropdown from '../components/ProfileDropdown';
 import { AuthContext } from '../context/AuthProvider';
+import { ChevronRight, Home as HomeIcon } from 'lucide-react'; // Added icons
 
 const Header = memo(function Header() {
+    const location = useLocation();
     const [showNotif, setShowNotif] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
     const notifRef = useRef(null);
@@ -13,7 +16,45 @@ const Header = memo(function Header() {
 
     const { accessToken } = useContext(AuthContext);
 
+    // Route to Title Mapping
+    const routeTitles = useMemo(() => ({
+        '/': 'Home',
+        '/cash': 'Cash Management',
+        '/members': 'Member Management',
+        '/settings': 'Settings',
+        '/audit-logs': 'Audit Logs',
+        '/summary': 'Financial Summary',
+        '/work-in-progress': 'Work In Progress',
+        '/change-password': 'Change Password',
+        '/forgot-password': 'Forgot Password',
+        '/reset-password': 'Reset Password'
+    }), []);
+
+    // Generate Breadcrumbs
+    const breadcrumbs = useMemo(() => {
+        const pathnames = location.pathname.split('/').filter((x) => x);
+        const crumbs = [{ path: '/', title: 'Home' }];
+
+        let currentPath = '';
+        pathnames.forEach((value, index) => {
+            currentPath += `/${value}`;
+
+            // Handle dynamic routes like /reset-password/:token
+            let title = routeTitles[currentPath];
+            if (!title && currentPath.startsWith('/reset-password/')) {
+                title = 'Reset Password';
+            }
+
+            if (title && title !== 'Home') {
+                crumbs.push({ path: currentPath, title });
+            }
+        });
+
+        return crumbs;
+    }, [location.pathname, routeTitles]);
+
     // Decode JWT to get user info
+    // ... (userInfo logic remains the same)
     const userInfo = useMemo(() => {
         if (!accessToken) return { nama: 'Guest', role: 'anggota' };
         try {
@@ -31,6 +72,7 @@ const Header = memo(function Header() {
     const userName = userInfo.nama || 'Guest';
     const userRole = userInfo.role || 'anggota';
 
+    // ... (formatRole, useEffect, toggleNotif, toggleProfile remains the same)
     // Format role for display
     const formatRole = useCallback((role) => {
         const roleMap = {
@@ -75,8 +117,32 @@ const Header = memo(function Header() {
     return (
         <header className="header">
             <div className="header-inner">
-                <Sparkles className="icon" size={20} />
-                <h1>DofE Management System</h1>
+                <nav className="breadcrumb-container" aria-label="Breadcrumb">
+                    {breadcrumbs.map((crumb, index) => {
+                        const isLast = index === breadcrumbs.length - 1;
+                        return (
+                            <div key={crumb.path} className="breadcrumb-item-wrapper">
+                                {index === 0 ? (
+                                    <Link to="/" className="breadcrumb-home">
+                                        <HomeIcon size={16} />
+                                    </Link>
+                                ) : (
+                                    <ChevronRight className="breadcrumb-separator" size={14} />
+                                )}
+
+                                {isLast ? (
+                                    <span className="breadcrumb-item active">{crumb.title}</span>
+                                ) : (
+                                    index !== 0 && (
+                                        <Link to={crumb.path} className="breadcrumb-item link">
+                                            {crumb.title}
+                                        </Link>
+                                    )
+                                )}
+                            </div>
+                        );
+                    })}
+                </nav>
             </div>
 
             <div className="header-actions">

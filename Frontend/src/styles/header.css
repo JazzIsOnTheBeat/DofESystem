@@ -20,19 +20,64 @@
 .header-inner {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 16px;
 }
 
-.header h1 {
-	margin: 0;
-	font-size: 1rem;
-	font-weight: 600;
-	letter-spacing: 0.3px;
-	color: var(--theme-text-primary);
+/* Breadcrumb Styles */
+.breadcrumb-container {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.95rem;
 }
 
-.header .icon {
+.breadcrumb-item-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.breadcrumb-home {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--theme-text-muted);
+	transition: all var(--theme-transition-fast);
+	padding: 6px;
+	border-radius: var(--theme-radius-sm);
+	background: var(--theme-glass);
+	border: 1px solid var(--theme-glass-border);
+}
+
+.breadcrumb-home:hover {
 	color: var(--theme-accent-primary);
+	border-color: var(--theme-accent-primary);
+	background: var(--theme-glass-hover);
+	transform: translateY(-1px);
+}
+
+.breadcrumb-item {
+	font-weight: 500;
+	transition: all var(--theme-transition-fast);
+}
+
+.breadcrumb-item.link {
+	color: var(--theme-text-secondary);
+	text-decoration: none;
+}
+
+.breadcrumb-item.link:hover {
+	color: var(--theme-accent-primary);
+}
+
+.breadcrumb-item.active {
+	color: var(--theme-text-primary);
+	font-weight: 700;
+}
+
+.breadcrumb-separator {
+	color: var(--theme-text-muted);
+	opacity: 0.5;
 }
 
 /* Header Actions */
