@@ -3,6 +3,8 @@ import Sidebar from './partials/sidebar';
 import Header from './partials/header';
 import Footer from './partials/footer';
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { useContext } from 'react';
+import { AuthContext } from './context/AuthProvider';
 import Home from './pages/Home';
 import Cash from './pages/Cash';
 import Members from './pages/Members';
@@ -19,11 +21,17 @@ import RequireAuth from './components/RequireAuth';
 import RequirePengurus from './components/RequirePengurus';
 
 function App() {
+  const location = useLocation()
+  const { isAuthenticated } = useContext(AuthContext)
+
   const isLogin = location.pathname === '/login'
   const isChangePass = location.pathname === '/change-password'
   const isForgotPass = location.pathname === '/forgot-password'
   const isResetPass = location.pathname.startsWith('/reset-password')
-  const hideLayout = isLogin || isChangePass || isForgotPass || isResetPass;
+
+  // Layout should be hidden if on auth pages OR if not authenticated
+  const hideLayout = isLogin || isChangePass || isForgotPass || isResetPass || !isAuthenticated;
+
   return (
     <div className={`App ${hideLayout ? 'no-sidebar' : ''}`}>
       {!hideLayout && <Sidebar />}
@@ -34,13 +42,6 @@ function App() {
           <Route path="/login" element={<Login />} />
 
           {/* Protected Routes */}
-          <Route element={<RequireAuth><Sidebar /><Header /><div className="main-content"><Footer /></div></RequireAuth>} />
-          {/* Note: The above structure is tricky because Sidebar/Header are outside Routes. 
-                I need to re-structure App to wrap protected components properly. 
-                Let's use a Layout component or wrap individual elements.
-                Given current structure: Sidebar/Header/Footer are conditional on !isLogin.
-                I will wrap the lazy way: wrap the element prop. 
-            */}
           <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
           <Route path="/cash" element={<RequireAuth><Cash /></RequireAuth>} />
           <Route path="/members" element={<RequireAuth><Members /></RequireAuth>} />

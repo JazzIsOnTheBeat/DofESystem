@@ -39,7 +39,7 @@ const actionConfig = {
 const LogItem = memo(function LogItem({ log }) {
   const config = actionConfig[log.action] || actionConfig.default;
   const ActionIcon = config.icon;
-  
+
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', {
@@ -125,7 +125,7 @@ const AuditLogs = () => {
 
   const fetchLogs = useCallback(async () => {
     if (!hasAccess) return;
-    
+
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -134,7 +134,7 @@ const AuditLogs = () => {
         ...(filterAction !== 'all' && { action: filterAction }),
         ...(searchQuery && { search: searchQuery })
       });
-      
+
       const response = await axiosPrivate.get(`/audit-logs?${params}`);
       setLogs(response.data.logs || []);
       setTotalPages(response.data.totalPages || 1);
@@ -148,7 +148,7 @@ const AuditLogs = () => {
 
   const fetchStats = useCallback(async () => {
     if (!hasAccess) return;
-    
+
     try {
       const response = await axiosPrivate.get('/audit-logs/stats');
       setStats(response.data);
@@ -218,7 +218,7 @@ const AuditLogs = () => {
         </div>
         <div className="header-badge">
           <Shield size={14} />
-          Pengurus Only
+          Staffs Only
         </div>
       </div>
 
@@ -273,7 +273,7 @@ const AuditLogs = () => {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="audit-pagination">
-          <button 
+          <button
             className="pagination-btn"
             onClick={handlePrevPage}
             disabled={currentPage === 1}
@@ -284,7 +284,7 @@ const AuditLogs = () => {
           <span className="pagination-info">
             Page {currentPage} of {totalPages}
           </span>
-          <button 
+          <button
             className="pagination-btn"
             onClick={handleNextPage}
             disabled={currentPage === totalPages}

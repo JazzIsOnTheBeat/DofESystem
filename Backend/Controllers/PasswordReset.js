@@ -5,27 +5,33 @@ import nodemailer from "nodemailer";
 
 const emailDomain = "@students.satyaterrabhinneka.ac.id";
 
-// Configure transporter using env variables
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: process.env.EMAIL_PORT == 465, // true for 465, false for other ports
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
-
 export const requestReset = async (req, res) => {
     const { nim } = req.body;
+
+    // Lazy initialize transporter to ensure env variables are loaded
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT,
+        secure: process.env.EMAIL_PORT == 465,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
     try {
+        console.log(`[Forgot Password] Request received for NIM: ${nim}`);
         const user = await Users.findOne({ where: { nim } });
         if (!user) {
+            console.warn(`[Forgot Password] NIM not found: ${nim}`);
             return res.status(404).json({ msg: "User with this NIM not found" });
         }
 
         const email = `${nim}${emailDomain}`;
 
+        if (!process.env.ACCESS_TOKEN_SECRET) {
+            throw new Error("ACCESS_TOKEN_SECRET is not defined in environment variables");
+        }
         // Generate a reset token valid for 30 minutes
         const resetToken = jwt.sign(
             { userId: user.id },
@@ -102,7 +108,7 @@ export const resetPassword = async (req, res) => {
 
         res.json({ msg: "Password has been successfully reset. You can now login with your new password." });
     } catch (error) {
-        console.error("Reset password error:", error);
+        console.error("[Reset Password] Error:", error);
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({ msg: "Reset link has expired" });
         }

@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import db from "./Config/database.js";
 import express from "express";
 import Users from "./Models/ModelUser.js";
@@ -7,9 +9,7 @@ import AuditLog from "./Models/ModelAuditLog.js";
 import router from "./Routes/index.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
 
-dotenv.config()
 const app = express()
 
 // Global error handlers
