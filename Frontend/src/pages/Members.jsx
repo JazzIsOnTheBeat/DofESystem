@@ -1,11 +1,11 @@
 import React, { useEffect, useState, memo, useContext, useMemo, useCallback } from 'react';
 import { axiosPrivate } from '../api/axios';
-import { 
-  Users, 
-  Search, 
-  Crown, 
-  Shield, 
-  Briefcase, 
+import {
+  Users,
+  Search,
+  Crown,
+  Shield,
+  Briefcase,
   BookOpen,
   User,
   Mail,
@@ -32,10 +32,10 @@ const roleConfig = {
 };
 
 // Memoized Member Card
-const MemberCard = memo(function MemberCard({ member, isCurrentUser, isPengurus, onEdit, onDelete }) {
+const MemberCard = memo(function MemberCard({ member, isCurrentUser, canManage, onEdit, onDelete }) {
   const config = roleConfig[member.role] || roleConfig.anggota;
   const RoleIcon = config.icon;
-  
+
   return (
     <div className={`member-card ${config.color} ${isCurrentUser ? 'current-user' : ''}`}>
       {isCurrentUser && (
@@ -44,7 +44,7 @@ const MemberCard = memo(function MemberCard({ member, isCurrentUser, isPengurus,
           You
         </div>
       )}
-      {isPengurus && !isCurrentUser && (
+      {canManage && !isCurrentUser && (
         <div className="member-actions">
           <button className="action-btn edit" onClick={() => onEdit(member)} title="Edit">
             <Edit2 size={14} />
@@ -124,6 +124,11 @@ const Members = () => {
     return pengurusRoles.includes(userRole);
   }, [userRole]);
 
+  // Check if user can manage members (Chairman and Vice Chairman only)
+  const canManage = useMemo(() => {
+    return ['ketua', 'wakilKetua'].includes(userRole);
+  }, [userRole]);
+
   // Fetch members
   const fetchMembers = useCallback(async () => {
     try {
@@ -149,7 +154,7 @@ const Members = () => {
   const filteredMembers = useMemo(() => {
     return members.filter(member => {
       const matchesSearch = member.nama?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           member.nim?.toLowerCase().includes(searchQuery.toLowerCase());
+        member.nim?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRole = filterRole === 'all' || member.role === filterRole;
       return matchesSearch && matchesRole;
     });
@@ -199,12 +204,12 @@ const Members = () => {
   const submitAdd = useCallback(async (e) => {
     e.preventDefault();
     setFormError('');
-    
+
     if (!formData.nama || !formData.nim || !formData.password) {
       setFormError('Name, NIM, and Password are required');
       return;
     }
-    
+
     if (formData.password !== formData.confPass) {
       setFormError('Password and Confirm Password do not match');
       return;
@@ -226,12 +231,12 @@ const Members = () => {
   const submitEdit = useCallback(async (e) => {
     e.preventDefault();
     setFormError('');
-    
+
     if (!formData.nama || !formData.nim) {
       setFormError('Name and NIM are required');
       return;
     }
-    
+
     if (formData.password && formData.password !== formData.confPass) {
       setFormError('Password and Confirm Password do not match');
       return;
@@ -289,7 +294,7 @@ const Members = () => {
           </h1>
           <p className="header-subtitle">Manage and view all DofE ST Bhinneka members</p>
         </div>
-        {isPengurus && (
+        {canManage && (
           <button className="add-member-btn" onClick={handleAdd}>
             <Plus size={18} />
             Add Member
@@ -332,11 +337,11 @@ const Members = () => {
       <div className="members-grid">
         {sortedMembers.length > 0 ? (
           sortedMembers.map((member) => (
-            <MemberCard 
-              key={member.id} 
-              member={member} 
+            <MemberCard
+              key={member.id}
+              member={member}
               isCurrentUser={member.id === currentUserId}
-              isPengurus={isPengurus}
+              canManage={canManage}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
