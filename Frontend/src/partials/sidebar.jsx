@@ -1,83 +1,70 @@
-import { memo, useContext, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import '../styles/sidebar.css';
-import { Home, Wallet, Settings, Users, Ribbon, FileText, ClipboardList } from 'lucide-react';
+import { Home, Wallet, Settings, Users, X, Sparkles } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { AuthContext } from '../context/AuthProvider';
+import { Ribbon } from 'lucide-react';
 
-const Sidebar = memo(function Sidebar() {
-    const { accessToken } = useContext(AuthContext);
-
-    const userRole = useMemo(() => {
-        if (!accessToken) return null;
-        try {
-            const base64Url = accessToken.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-            return JSON.parse(jsonPayload).role;
-        } catch { return null; }
-    }, [accessToken]);
-
-    const isPengurus = useMemo(() => {
-        const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
-        return pengurusRoles.includes(userRole);
-    }, [userRole]);
-
+const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
+    useEffect(() => {
+        const onKey = (e) => {
+            if (e.key === 'Escape' && isOpen) onClose();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
     return (
-        <aside className="sidebar">
-            <h2 className='sidebar-title'>
-                <div className="sidebar-logo nav-icon">
-                    <Ribbon className="logo-icon text-primary" size={35} />
-                </div>
-                <div className="sidebar-brand">
-                    <span className="brand-text">DofE Awards ST Bhinneka</span>
-                </div>
-                <div className="sidebar-subtitle">Management System</div>
+        <>
+            <aside className={`sidebar ${isOpen ? 'open' : ''}`} aria-hidden={!isOpen && window.innerWidth <= 600}>
+                <button className="mobile-close" onClick={onClose} aria-label="Close menu">
+                    <X size={18} />
+                </button>
 
-            </h2>
-            <nav className="nav">
-                <ul>
-                    <li className="nav-item">
-                        <NavLink to="/" end className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
-                            <Home className="nav-icon" size={18} />
-                            <span className="nav-label">Dashboard</span>
-                        </NavLink>
-                    </li>
-                    <li className="nav-item">
-                        <NavLink to="/cash" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
-                            <Wallet className="nav-icon" size={18} />
-                            <span className="nav-label">Cash</span>
-                        </NavLink>
-                    </li>
-                    <li className="nav-item">
-                        <NavLink to="/members" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
-                            <Users className="nav-icon" size={18} />
-                            <span className="nav-label">Members</span>
-                        </NavLink>
-                    </li>
-                    <li className="nav-item">
-                        <NavLink to="/summary" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
-                            <ClipboardList className="nav-icon" size={18} />
-                            <span className="nav-label">Summary</span>
-                        </NavLink>
-                    </li>
-                    {isPengurus && (
+                <div className="mobile-header">
+                    <Sparkles size={18} className="mobile-header-icon" />
+                    <div className="mobile-header-title">DofE Management</div>
+                </div>
+
+                <h2 className='sidebar-title'>
+                    <div className="sidebar-logo nav-icon">
+                        <Ribbon className="logo-icon text-primary" size={35} />
+                    </div>
+                    <div className="sidebar-brand">
+                        <span className="brand-text">DofE Awards ST Bhinneka</span>
+                    </div>
+                    <div className="sidebar-subtitle">Management System</div>
+                </h2>
+                <nav className="nav">
+                    <ul>
                         <li className="nav-item">
-                            <NavLink to="/audit-logs" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
-                                <FileText className="nav-icon" size={18} />
-                                <span className="nav-label">Audit Logs</span>
+                            <NavLink to="/" end className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={() => { if (window.innerWidth <= 600) onClose(); }}>
+                                <Home className="nav-icon" size={18} />
+                                <span className="nav-label">Beranda</span>
                             </NavLink>
                         </li>
-                    )}
-                    <li className="nav-item">
-                        <NavLink to="/settings" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
-                            <Settings className="nav-icon" size={18} />
-                            <span className="nav-label">Settings</span>
-                        </NavLink>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
+                        <li className="nav-item">
+                            <NavLink to="/cash" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={() => { if (window.innerWidth <= 600) onClose(); }}>
+                                <Wallet className="nav-icon" size={18} />
+                                <span className="nav-label">Uang Kas</span>
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink to="/members" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={() => { if (window.innerWidth <= 600) onClose(); }}>
+                                <Users className="nav-icon" size={18} />
+                                <span className="nav-label">Anggota</span>
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink to="/settings" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={() => { if (window.innerWidth <= 600) onClose(); }}>
+                                <Settings className="nav-icon" size={18} />
+                                <span className="nav-label">Settings</span>
+                            </NavLink>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+            {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
+        </>
     );
-});
+}
 
 export default Sidebar;

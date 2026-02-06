@@ -1,19 +1,20 @@
 import '../styles/header.css';
-import { Sparkles, Bell, User } from 'lucide-react';
+import { Sparkles, Bell, User, Menu } from 'lucide-react';
 import { useState, useRef, useEffect, useContext, useMemo, useCallback, memo } from 'react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import ProfileDropdown from '../components/ProfileDropdown';
 import { AuthContext } from '../context/AuthProvider';
+import { useLanguage } from '../context/LanguageContext';
 
-const Header = memo(function Header() {
+const Header = memo(function Header({ onMenuToggle = () => {} }) {
     const [showNotif, setShowNotif] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
     const notifRef = useRef(null);
     const profileRef = useRef(null);
 
     const { accessToken } = useContext(AuthContext);
+    const { t, formatRole } = useLanguage();
 
-    // Decode JWT to get user info
     const userInfo = useMemo(() => {
         if (!accessToken) return { nama: 'Guest', role: 'anggota' };
         try {
@@ -30,19 +31,6 @@ const Header = memo(function Header() {
 
     const userName = userInfo.nama || 'Guest';
     const userRole = userInfo.role || 'anggota';
-
-    // Format role for display
-    const formatRole = useCallback((role) => {
-        const roleMap = {
-            'ketua': 'Chairman',
-            'wakilKetua': 'Vice Chairman',
-            'sekretaris': 'Secretary',
-            'admin': 'Admin',
-            'bendahara': 'Treasurer',
-            'anggota': 'Member'
-        };
-        return roleMap[role] || role;
-    }, []);
 
     useEffect(() => {
         const onDocClick = (e) => {
@@ -64,24 +52,34 @@ const Header = memo(function Header() {
 
     const toggleNotif = useCallback((e) => {
         e.stopPropagation();
-        setShowNotif(s => !s);
+        setShowNotif(s => {
+            const next = !s;
+            if (next) setShowProfile(false);
+            return next;
+        });
     }, []);
 
     const toggleProfile = useCallback((e) => {
         e.stopPropagation();
-        setShowProfile(s => !s);
+        setShowProfile(s => {
+            const next = !s;
+            if (next) setShowNotif(false);
+            return next;
+        });
     }, []);
 
     return (
         <header className="header">
             <div className="header-inner">
-                <Sparkles className="icon" size={20} />
-                <h1>DofE Management System</h1>
+                <button className="hamburger-btn" aria-label="Open menu" onClick={onMenuToggle}>
+                    <Menu size={18} />
+                </button>
+
             </div>
 
             <div className="header-actions">
                 <div className="notif-wrap" ref={notifRef}>
-                    <button className="icon-btn" aria-label="Notifications" onClick={toggleNotif}>
+                    <button className="icon-btn" aria-label={t('notifications')} onClick={toggleNotif}>
                         <Bell className="bell" size={20} />
                     </button>
                     {showNotif && <NotificationDropdown items={notifications} />}

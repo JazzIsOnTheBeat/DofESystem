@@ -162,7 +162,6 @@ export default function AuthProvider({ children }) {
 
   const getAuthHeader = useCallback(() => ({ Authorization: accessToken ? `Bearer ${accessToken}` : '' }), [accessToken])
 
-  // Show loading while checking auth
   if (isLoading) {
     return (
       <div style={{

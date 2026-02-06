@@ -3,6 +3,7 @@ import Sidebar from './partials/sidebar';
 import Header from './partials/header';
 import Footer from './partials/footer';
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import Home from './pages/Home';
 import Cash from './pages/Cash';
 import Members from './pages/Members';
@@ -18,23 +19,16 @@ import RequirePengurus from './components/RequirePengurus';
 function App() {
   const location = useLocation()
   const isLogin = location.pathname === '/login'
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
-    <div className={`App ${isLogin ? 'no-sidebar' : ''}`}>
-      {!isLogin && <Sidebar />}
+    <div className={`App ${isLogin ? 'no-sidebar' : ''} ${mobileMenuOpen ? 'mobile-menu-open' : ''}`}>
+      {!isLogin && <Sidebar isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />}
       <div className="main-content">
-        {!isLogin && <Header />}
+        {!isLogin && <Header onMenuToggle={() => setMobileMenuOpen(s => !s)} />}
         <Routes>
-          {/* Public Route */}
           <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes */}
           <Route element={<RequireAuth><Sidebar /><Header /><div className="main-content"><Footer /></div></RequireAuth>} />
-          {/* Note: The above structure is tricky because Sidebar/Header are outside Routes. 
-                I need to re-structure App to wrap protected components properly. 
-                Let's use a Layout component or wrap individual elements.
-                Given current structure: Sidebar/Header/Footer are conditional on !isLogin.
-                I will wrap the lazy way: wrap the element prop. 
-            */}
           <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
           <Route path="/cash" element={<RequireAuth><Cash /></RequireAuth>} />
           <Route path="/members" element={<RequireAuth><Members /></RequireAuth>} />
@@ -43,7 +37,6 @@ function App() {
           <Route path="/summary" element={<RequireAuth><Summary /></RequireAuth>} />
           <Route path="/work-in-progress" element={<RequireAuth><WorkInProgress /></RequireAuth>} />
           
-          {/* 404 Route - Must be last */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

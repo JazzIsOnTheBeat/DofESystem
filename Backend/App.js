@@ -12,7 +12,6 @@ import dotenv from "dotenv";
 dotenv.config()
 const app = express()
 
-// Global error handlers
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
 });
@@ -37,7 +36,7 @@ const startServer = async () => {
         process.exit(1);
     }
 
-    app.use(cors({ credentials: true, origin: 'http://localhost:5173' }))
+    app.use(cors({ credentials: true, origin: ['https://dofe.jass-production.me'] }))
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(cookieParser())

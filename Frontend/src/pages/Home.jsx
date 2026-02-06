@@ -1,6 +1,7 @@
 import React, { useContext, useMemo, useEffect, useState, memo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthProvider';
+import { useLanguage } from '../context/LanguageContext';
 import { axiosPrivate } from '../api/axios';
 import {
   Wallet,
@@ -10,6 +11,7 @@ import {
   Clock,
   ChevronRight,
   Sparkles,
+  Settings,
   Target,
   Award,
   Bell,
@@ -28,7 +30,6 @@ import {
 } from 'lucide-react';
 import '../styles/home.css';
 
-// Quick Action Card
 const QuickAction = memo(function QuickAction({ icon: Icon, title, desc, to, color }) {
   return (
     <Link to={to} className={`quick-action ${color}`}>
@@ -44,7 +45,6 @@ const QuickAction = memo(function QuickAction({ icon: Icon, title, desc, to, col
   );
 });
 
-// Stat Card
 const StatCard = memo(function StatCard({ icon: Icon, label, value, subtext, color }) {
   return (
     <div className={`stat-card ${color}`}>
@@ -60,7 +60,6 @@ const StatCard = memo(function StatCard({ icon: Icon, label, value, subtext, col
   );
 });
 
-// Activity Item
 const ActivityItem = memo(function ActivityItem({ icon: Icon, title, time, type }) {
   return (
     <div className={`activity-item ${type}`}>
@@ -75,7 +74,6 @@ const ActivityItem = memo(function ActivityItem({ icon: Icon, title, time, type 
   );
 });
 
-// Map action types to icons and display info
 const actionIconMap = {
   login: { icon: LogIn, type: 'info', label: 'Login' },
   logout: { icon: LogOut, type: 'info', label: 'Logout' },
@@ -89,7 +87,6 @@ const actionIconMap = {
   expense_deleted: { icon: Trash2, type: 'danger', label: 'Expense Deleted' },
 };
 
-// Format relative time
 const formatRelativeTime = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
@@ -107,6 +104,7 @@ const formatRelativeTime = (dateString) => {
 
 const Home = () => {
   const { accessToken, isLoading: authLoading } = useContext(AuthContext);
+  const { t, formatRole, formatRelativeTime, getGreeting, getMonthName, language } = useLanguage();
   const [stats, setStats] = useState({ 
     totalMembers: 0, 
     totalKas: 0, 
@@ -132,60 +130,31 @@ const Home = () => {
   const userRole = userInfo.role || 'anggota';
   const isPengurus = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'].includes(userRole);
 
-  // Format role for display
-  const formatRole = (role) => {
-    const roleMap = {
-      'ketua': 'Chairman',
-      'wakilKetua': 'Vice Chairman',
-      'sekretaris': 'Secretary',
-      'bendahara': 'Treasurer',
-      'anggota': 'Member'
-    };
-    return roleMap[role] || role;
-  };
-
-  // Get greeting based on time
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 15) return 'Good Afternoon';
-    if (hour < 18) return 'Good Evening';
-    return 'Good Night';
-  };
-
-  // Get current date formatted
   const currentDate = useMemo(() => {
-    return new Date().toLocaleDateString('en-US', {
+    return new Date().toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-  }, []);
+  }, [language]);
 
-  // Current month name for payment check
   const currentMonthName = useMemo(() => {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                    'July', 'August', 'September', 'October', 'November', 'December'];
-    return months[new Date().getMonth()];
-  }, []);
+    return getMonthName(new Date().getMonth());
+  }, [getMonthName]);
 
-  // Fetch all data
   const fetchData = useCallback(async () => {
     try {
-      // Base requests for all users
       const baseRequests = [
         axiosPrivate.get('/users'),
         axiosPrivate.get('/kas/summary'),
         axiosPrivate.get('/kas/my')
       ];
 
-      // Add audit logs request only for pengurus
       if (isPengurus) {
         baseRequests.push(axiosPrivate.get('/audit-logs?limit=5'));
       }
 
-      // Add staff kas for bendahara to get pending count
       if (userRole === 'bendahara') {
         baseRequests.push(axiosPrivate.get('/kas/staff'));
       }
@@ -194,12 +163,10 @@ const Home = () => {
       
       const [usersRes, summaryRes, myKasRes] = responses;
       
-      // Check if current month is paid
       const currentMonthPaid = myKasRes.data.some(
         k => k.bulan?.startsWith(currentMonthName.substring(0, 3)) && k.Status === 'diterima'
       );
 
-      // Count pending payments for bendahara
       let pendingCount = 0;
       if (userRole === 'bendahara' && responses[4]) {
         pendingCount = responses[4].data.filter(k => k.Status === 'pending').length;
@@ -215,7 +182,6 @@ const Home = () => {
         currentMonthPaid
       });
 
-      // Process audit logs for activities (pengurus only)
       if (isPengurus && responses[3]?.data?.logs) {
         const logs = responses[3].data.logs.map(log => {
           const actionInfo = actionIconMap[log.action] || { icon: FileText, type: 'info', label: log.action };
@@ -228,7 +194,6 @@ const Home = () => {
         });
         setActivities(logs);
       } else {
-        // For non-pengurus, show their own payment activities
         const myActivities = myKasRes.data
           .slice(0, 5)
           .map(kas => ({
@@ -241,7 +206,6 @@ const Home = () => {
       }
     } catch (err) {
       console.error('Failed to fetch data', err);
-      // Set fallback activities
       setActivities([
         { icon: AlertCircle, title: 'Unable to load activities', time: 'Now', type: 'warning' }
       ]);
@@ -255,6 +219,23 @@ const Home = () => {
       return;
     }
     fetchData();
+    
+    const refreshInterval = setInterval(() => {
+      fetchData();
+    }, 30000);
+    
+    return () => clearInterval(refreshInterval);
+  }, [accessToken, authLoading, fetchData]);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      if (accessToken && !authLoading) {
+        fetchData();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [accessToken, authLoading, fetchData]);
 
   if (loading) {
@@ -262,7 +243,7 @@ const Home = () => {
       <div className="home-page">
         <div className="home-loading">
           <div className="loading-spinner"></div>
-          <p>Loading dashboard...</p>
+          <p>{t('loadingDashboard')}</p>
         </div>
       </div>
     );
@@ -270,7 +251,6 @@ const Home = () => {
 
   return (
     <div className="home-page">
-      {/* Welcome Section */}
       <section className="welcome-section">
         <div className="welcome-content">
           <div className="welcome-badge">
@@ -290,76 +270,80 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
       <section className="stats-section">
         <StatCard
           icon={Users}
-          label="Total Members"
+          label={t('totalMembers')}
           value={stats.totalMembers}
-          subtext="active members"
+          subtext={t('activeMembers')}
           color="blue"
         />
         <StatCard
           icon={Wallet}
-          label="Cash Balance"
+          label={t('cashBalance')}
           value={`Rp ${stats.totalKas.toLocaleString('en-US')}`}
-          subtext="available cash"
+          subtext={t('availableCash')}
           color="green"
         />
         <StatCard
           icon={CheckCircle2}
-          label="My Payments"
+          label={t('myPayments')}
           value={`${stats.myPayments}/12`}
-          subtext={stats.currentMonthPaid ? `${currentMonthName} ✓` : `${currentMonthName} not yet`}
+          subtext={stats.currentMonthPaid ? `${currentMonthName} ✓` : `${currentMonthName} ${t('notYet')}`}
           color="purple"
         />
         {userRole === 'bendahara' ? (
           <StatCard
             icon={AlertCircle}
-            label="Pending Verification"
+            label={t('pendingVerification')}
             value={stats.pendingPayments}
-            subtext="pending payments"
+            subtext={t('pendingPayments')}
             color="orange"
           />
         ) : (
           <StatCard
             icon={Target}
-            label="This Year's Target"
+            label={t('thisYearTarget')}
             value="Rp 600k"
-            subtext="per member"
+            subtext={t('perMember')}
             color="orange"
           />
         )}
       </section>
 
-      {/* Main Content Grid */}
       <div className="home-grid">
-        {/* Quick Actions */}
         <section className="quick-actions-section">
           <h2 className="section-title">
             <ArrowUpRight size={18} />
-            Quick Actions
+            {t('quickActions')}
           </h2>
           <div className="quick-actions-list">
             <QuickAction
               icon={Wallet}
-              title="Pay Cash"
-              desc="Pay monthly cash via QRIS"
+              title={t('payCash')}
+              desc={t('payMonthlyCash')}
               to="/cash"
               color="primary"
             />
             <QuickAction
               icon={Users}
-              title="View Members"
-              desc="List of all DofE members"
+              title={t('viewMembers')}
+              desc={t('listAllMembers')}
               to="/members"
               color="secondary"
             />
+              <QuickAction
+                icon={Settings}
+                title={t('settings')}
+                desc={t('openSettings')}
+                to="/settings"
+                color="muted"
+              />
             {userRole === 'bendahara' && (
               <QuickAction
                 icon={TrendingUp}
-                title="Manage Cash"
-                desc="Verify & manage payments"
+                title={t('manageCash')}
+                desc={t('verifyManagePayments')}
                 to="/cash"
                 color="accent"
               />
@@ -367,11 +351,10 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Recent Activity */}
         <section className="activity-section">
           <h2 className="section-title">
             <Clock size={18} />
-            Recent Activity
+            {t('recentActivity')}
           </h2>
           <div className="activity-list">
             {activities.length > 0 ? (
@@ -381,40 +364,38 @@ const Home = () => {
             ) : (
               <div className="no-activity">
                 <FileText size={24} />
-                <p>No activities yet</p>
+                <p>{t('noActivitiesYet')}</p>
               </div>
             )}
           </div>
           {isPengurus && (
             <Link to="/audit-logs" className="view-all-link">
-              View all logs
+              {t('viewAllLogs')}
               <ChevronRight size={16} />
             </Link>
           )}
         </section>
 
-        {/* Info Cards */}
         <section className="info-section">
-          {/* Payment Status Card */}
           <div className={`info-card payment-status ${stats.currentMonthPaid ? 'paid' : 'unpaid'}`}>
             <div className="info-card-header">
               {stats.currentMonthPaid ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
-              <h3>Cash Status {currentMonthName}</h3>
+              <h3>{t('cashStatus')} {currentMonthName}</h3>
             </div>
             <div className="info-card-content">
               <div className="payment-status-info">
                 {stats.currentMonthPaid ? (
                   <>
-                    <span className="status-badge success">Paid</span>
-                    <p>Thank you! Your cash payment for {currentMonthName} has been received.</p>
+                    <span className="status-badge success">{t('paid')}</span>
+                    <p>{t('thankYouPayment')}</p>
                   </>
                 ) : (
                   <>
-                    <span className="status-badge warning">Not Yet Paid</span>
-                    <p>Your cash payment for {currentMonthName} has not been received. Pay via QRIS now!</p>
+                    <span className="status-badge warning">{t('notYetPaid')}</span>
+                    <p>{t('paymentNotReceived')}</p>
                     <Link to="/cash" className="pay-now-btn">
                       <Wallet size={14} />
-                      Pay Now
+                      {t('payNow')}
                     </Link>
                   </>
                 )}
@@ -422,44 +403,42 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Bendahara Extra Card */}
           {userRole === 'bendahara' && (
             <div className="info-card finance-summary">
               <div className="info-card-header">
                 <DollarSign size={20} />
-                <h3>Financial Summary</h3>
+                <h3>{t('financialSummary')}</h3>
               </div>
               <div className="info-card-content">
                 <div className="finance-row">
-                  <span className="finance-label">Income</span>
+                  <span className="finance-label">{t('income')}</span>
                   <span className="finance-value income">+Rp {(stats.totalIncome || 0).toLocaleString('en-US')}</span>
                 </div>
                 <div className="finance-row">
-                  <span className="finance-label">Expenses</span>
+                  <span className="finance-label">{t('expenses')}</span>
                   <span className="finance-value expense">-Rp {(stats.totalExpense || 0).toLocaleString('en-US')}</span>
                 </div>
                 <div className="finance-row total">
-                  <span className="finance-label">Balance</span>
+                  <span className="finance-label">{t('balance')}</span>
                   <span className="finance-value">Rp {stats.totalKas.toLocaleString('en-US')}</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Schedule Card */}
           <div className="info-card schedule">
             <div className="info-card-header">
               <Calendar size={20} />
-              <h3>Activity Schedule</h3>
+              <h3>{t('activitySchedule')}</h3>
             </div>
             <div className="info-card-content">
               <div className="schedule-item">
-                <span className="schedule-day">Friday</span>
-                <span className="schedule-desc">Weekly routine activities</span>
+                <span className="schedule-day">{t('friday')}</span>
+                <span className="schedule-desc">{t('weeklyRoutine')}</span>
               </div>
               <div className="schedule-item">
-                <span className="schedule-day">Saturday</span>
-                <span className="schedule-desc">Outdoor training (conditional)</span>
+                <span className="schedule-day">{t('saturday')}</span>
+                <span className="schedule-desc">{t('outdoorTraining')}</span>
               </div>
             </div>
           </div>

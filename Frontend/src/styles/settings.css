@@ -1,7 +1,3 @@
-/* ============================================================
-   SETTINGS PAGE - CONTROL PANEL REDESIGN
-   ============================================================ */
-
 .p-6 {
     padding: 32px;
     min-height: calc(100vh - 80px);
@@ -9,9 +5,7 @@
     color: var(--theme-text-primary);
     animation: fadeIn 0.5s ease-out;
 }
-
-/* Header */
-h1.text-2xl {
+.h1.text-2xl {
     font-size: 2rem;
     font-weight: 800;
     margin-bottom: 32px;
@@ -30,7 +24,6 @@ h1.text-2xl:hover svg {
     transform: rotate(90deg);
 }
 
-/* Settings Card */
 .max-w-md {
     max-width: 600px;
     width: 100%;
@@ -52,8 +45,7 @@ h1.text-2xl:hover svg {
     border-color: var(--theme-accent-primary);
 }
 
-/* Section Title */
-h2.text-lg {
+.h2.text-lg {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--theme-text-secondary);
@@ -64,7 +56,6 @@ h2.text-lg {
     letter-spacing: 1px;
 }
 
-/* Toggle Control Row */
 .flex.items-center.justify-between {
     display: flex;
     align-items: center;
@@ -78,8 +69,7 @@ h2.text-lg {
     background: rgba(99, 102, 241, 0.05);
 }
 
-/* Label */
-span.flex.items-center.gap-2 {
+.span.flex.items-center.gap-2 {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -88,8 +78,7 @@ span.flex.items-center.gap-2 {
     color: var(--theme-text-primary);
 }
 
-/* Toggle Button */
-button.px-4.py-2 {
+.button.px-4.py-2 {
     padding: 10px 24px;
     border-radius: var(--theme-radius-full);
     font-size: 0.9rem;
@@ -100,7 +89,61 @@ button.px-4.py-2 {
     box-shadow: var(--theme-shadow-sm);
 }
 
-/* Active State */
+.settings-card {
+    display: block;
+    max-width: 880px;
+}
+
+.settings-row {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 220px;
+    flex: 1 1 320px;
+    padding: 8px 0;
+}
+
+@media (max-width: 900px) {
+    .p-6 { padding: 20px; }
+    .settings-card { padding: 20px; }
+    .settings-item { flex: 1 1 45%; }
+}
+
+@media (max-width: 480px) {
+    .settings-row { flex-direction: column; gap: 12px; }
+    .settings-item { flex: 1 1 100%; }
+    .p-6 { padding: 16px; }
+    h1.text-2xl { font-size: 1.25rem; gap: 8px; }
+}
+
+@media (max-width: 600px) {
+    .settings-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .settings-item .flex {
+        width: 100%;
+        margin-top: 8px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .settings-item .flex button {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+}
+
 button.bg-blue-600 {
     background: var(--theme-accent-primary);
     color: white;
@@ -110,7 +153,6 @@ button.bg-blue-600:hover {
     background: var(--theme-accent-secondary);
 }
 
-/* Inactive State */
 button.bg-gray-200 {
     background: var(--theme-glass-hover);
     color: var(--theme-text-muted);

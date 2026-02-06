@@ -51,7 +51,6 @@ const AuditLog = db.define('audit_logs', {
 
 export default AuditLog;
 
-// Helper function to create audit log
 export const createAuditLog = async (action, description, userId = null, userName = null, targetUserId = null, targetUser = null, metadata = null) => {
     try {
         await AuditLog.create({

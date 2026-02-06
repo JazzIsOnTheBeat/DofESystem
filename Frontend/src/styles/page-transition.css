@@ -1,18 +1,10 @@
-/* ============================================================
-   PAGE TRANSITION ANIMATIONS
-   ============================================================ */
-
 .page-transition {
     width: 100%;
     min-height: 100%;
 }
-
-/* Enter animation - fade and slide up */
 .page-transition.enter {
     animation: pageEnter 0.3s ease-out forwards;
 }
-
-/* Exit animation - fade and slide down */
 .page-transition.exit {
     animation: pageExit 0.15s ease-in forwards;
 }
@@ -39,7 +31,6 @@
     }
 }
 
-/* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
     .page-transition.enter,
     .page-transition.exit {

@@ -1,9 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Construction, Home, ArrowLeft, Clock, Sparkles } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import '../styles/workinprogress.css';
 
 const WorkInProgress = () => {
+  const { t } = useLanguage();
+  
   return (
     <div className="wip-page">
       <div className="wip-content">
@@ -18,22 +21,22 @@ const WorkInProgress = () => {
           </div>
         </div>
         
-        <h1>Under Development</h1>
-        <p>This feature is currently under development and will be available soon. Thank you for your patience!</p>
+        <h1>{t('underDevelopment')}</h1>
+        <p>{t('underDevelopmentMessage')}</p>
         
         <div className="wip-info">
           <Clock size={16} />
-          <span>Estimated: Coming Soon</span>
+          <span>{t('estimated')}</span>
         </div>
         
         <div className="wip-actions">
           <Link to="/" className="btn-primary">
             <Home size={18} />
-            Back to Home
+            {t('backToHome')}
           </Link>
           <button onClick={() => window.history.back()} className="btn-secondary">
             <ArrowLeft size={18} />
-            Previous Page
+            {t('previousPage')}
           </button>
         </div>
       </div>

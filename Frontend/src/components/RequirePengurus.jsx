@@ -6,12 +6,10 @@ export default function RequirePengurus({ children }) {
   const { accessToken, isAuthenticated } = useContext(AuthContext);
   const location = useLocation();
 
-  // First check if authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  // Get user role from token
   const userRole = useMemo(() => {
     if (!accessToken) return null;
     try {
@@ -26,12 +24,10 @@ export default function RequirePengurus({ children }) {
     }
   }, [accessToken]);
 
-  // Check if user is pengurus
   const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
   const isPengurus = pengurusRoles.includes(userRole);
 
   if (!isPengurus) {
-    // Redirect non-pengurus to home page
     return <Navigate to="/" replace />;
   }
 

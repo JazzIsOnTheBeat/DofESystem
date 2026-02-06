@@ -65,7 +65,7 @@ const StatCard = memo(function StatCard({ title, value, icon: Icon, variant, tre
   )
 })
 
-const LeaderboardItem = memo(function LeaderboardItem({ member, rank, paidCount }) {
+const LeaderboardItem = memo(function LeaderboardItem({ member, rank, paidCount, t }) {
   const rankIcon = useMemo(() => {
     if (rank === 1) return <Crown size={14} className="rank-icon gold" />
     if (rank === 2) return <Medal size={14} className="rank-icon silver" />
@@ -189,14 +189,12 @@ export default function Cash() {
   const [expenses, setExpenses] = useState([])
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, balance: 0 })
 
-  // Modals
   const [showQris, setShowQris] = useState(false)
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showVerificationModal, setShowVerificationModal] = useState(false)
   const [showProofModal, setShowProofModal] = useState(false)
   const [activeProofUrl, setActiveProofUrl] = useState('')
 
-  // Forms
   const [newExpense, setNewExpense] = useState({ amount: '', desc: '' })
   const [selectedMember, setSelectedMember] = useState(null)
   const [paymentFile, setPaymentFile] = useState(null)
@@ -271,7 +269,6 @@ export default function Cash() {
       setPayments(map);
       setPendingPayments(pending);
 
-      // Process expenses
       setExpenses(expenseRes.data.map(e => ({
         id: e.id,
         desc: e.deskripsi,
@@ -280,7 +277,6 @@ export default function Cash() {
         user: e.user?.nama || 'Unknown'
       })));
 
-      // Process summary
       setSummary(summaryRes.data);
     } catch (err) {
       console.error("Failed to fetch data", err);
@@ -300,6 +296,23 @@ export default function Cash() {
     }
   }, [userRole, accessToken, authLoading, loadData]);
 
+  useEffect(() => {
+    const handleFocus = () => {
+      if (accessToken && !authLoading) {
+        loadData();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [accessToken, authLoading, loadData]);
+
+  useEffect(() => {
+    if (showVerificationModal && pendingPayments.length === 0) {
+      setShowVerificationModal(false);
+    }
+  }, [pendingPayments.length, showVerificationModal]);
+
   const handleUploadPayment = useCallback(async () => {
     if (!paymentFile) {
       showToast("Please select payment proof!", "warning");
@@ -314,13 +327,12 @@ export default function Cash() {
     formData.append("bukti", paymentFile);
 
     try {
-      await axiosPrivate.post('/kas', formData, {
+      const response = await axiosPrivate.post('/kas', formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       showToast("Payment proof submitted successfully! Waiting for Treasurer confirmation.", "success");
       setShowQris(false);
       setPaymentFile(null);
-      loadData();
     } catch (err) {
       console.error(err);
       showToast("Failed to submit payment proof.", "error");
@@ -330,10 +342,12 @@ export default function Cash() {
   }, [paymentFile, userId, paymentMonth, loadData, showToast]);
 
   const handleVerifyPayment = useCallback(async (id, status) => {
+    const paymentToVerify = pendingPayments.find(p => p.id === id);
+    
     try {
       await axiosPrivate.patch(`/kas/bendahara/${id}`, {
         Status: status,
-        catatan: status === 'diterima' ? 'Paid' : 'Invalid proof'
+        catatan: status === 'diterima' ? t('paid') : 'Invalid proof'
       });
       showToast(`Payment ${status === 'diterima' ? 'accepted' : 'rejected'} successfully!`, "success");
       loadData();
@@ -350,34 +364,68 @@ export default function Cash() {
   const addExpense = useCallback(async () => {
     const amt = Number(newExpense.amount) || 0
     if (!amt || !newExpense.desc) {
-      alert('Amount and description are required');
+      alert(t('amountDescRequired'));
       return;
     }
 
     try {
-      await axiosPrivate.post('/pengeluaran', {
+      const response = await axiosPrivate.post('/pengeluaran', {
         jumlah: amt,
         deskripsi: newExpense.desc
       });
+      
+      const newExpenseData = response.data?.data || {
+        id: Date.now(),
+        desc: newExpense.desc,
+        amount: amt,
+        tanggal: new Date().toISOString(),
+        user: userInfo.nama || 'Unknown'
+      };
+      
+      setExpenses(prev => [{
+        id: newExpenseData.id,
+        desc: newExpenseData.deskripsi || newExpense.desc,
+        amount: newExpenseData.jumlah || amt,
+        tanggal: newExpenseData.tanggal || new Date().toISOString(),
+        user: newExpenseData.user?.nama || userInfo.nama || 'Unknown'
+      }, ...prev]);
+      
+      setSummary(prev => ({
+        ...prev,
+        totalExpense: prev.totalExpense + amt,
+        balance: prev.balance - amt
+      }));
+      
       setNewExpense({ amount: '', desc: '' })
       setShowExpenseModal(false)
-      loadData();
     } catch (err) {
       console.error(err);
-      alert('Failed to add expense');
+      alert(t('failedAddExpense'));
     }
-  }, [newExpense, loadData])
+  }, [newExpense, t, userInfo.nama])
 
   const deleteExpense = useCallback(async (id) => {
-    if (!window.confirm('Delete this expense?')) return;
+    if (!window.confirm(t('deleteExpense'))) return;
+    
+    const expenseToDelete = expenses.find(e => e.id === id);
+    
     try {
       await axiosPrivate.delete(`/pengeluaran/${id}`);
-      loadData();
+      
+      setExpenses(prev => prev.filter(e => e.id !== id));
+      
+      if (expenseToDelete) {
+        setSummary(prev => ({
+          ...prev,
+          totalExpense: prev.totalExpense - expenseToDelete.amount,
+          balance: prev.balance + expenseToDelete.amount
+        }));
+      }
     } catch (err) {
       console.error(err);
-      alert('Failed to delete expense');
+      alert(t('failedDeleteExpense'));
     }
-  }, [loadData])
+  }, [t, expenses])
 
   const leaderboard = useMemo(() => {
     const rows = (members || []).map(m => {
@@ -449,8 +497,9 @@ export default function Cash() {
 
     try {
       if (paymentData) {
-        if (window.confirm(`Delete payment status for ${member.nama} for ${monthName}?`)) {
+        if (window.confirm(`${t('deletePaymentStatus')} ${member.nama} ${monthName}?`)) {
           await axiosPrivate.delete(`/kas/staff/${paymentData.id}`);
+          
           setPayments(prev => {
             const newPayments = { ...prev };
             const userMap = new Map(newPayments[member.id] || []);
@@ -458,6 +507,14 @@ export default function Cash() {
             newPayments[member.id] = userMap;
             return newPayments;
           });
+          
+          if (paymentData.status === 'diterima') {
+            setSummary(prev => ({
+              ...prev,
+              totalIncome: prev.totalIncome - MONTHLY_FEE,
+              balance: prev.balance - MONTHLY_FEE
+            }));
+          }
         }
       } else {
         const response = await axiosPrivate.post('/kas/manual', {
@@ -466,6 +523,7 @@ export default function Cash() {
           jumlah: MONTHLY_FEE
         });
         const newPayment = response.data?.data;
+        
         setPayments(prev => {
           const newPayments = { ...prev };
           const userMap = new Map(newPayments[member.id] || []);
@@ -478,20 +536,25 @@ export default function Cash() {
           newPayments[member.id] = userMap;
           return newPayments;
         });
+        
+        setSummary(prev => ({
+          ...prev,
+          totalIncome: prev.totalIncome + MONTHLY_FEE,
+          balance: prev.balance + MONTHLY_FEE
+        }));
       }
     } catch (error) {
       console.error("Failed to toggle payment", error);
-      alert("Failed to change payment status");
+      alert(t('failedChangePaymentStatus'));
     }
-  }, [userRole, payments]);
+  }, [userRole, payments, t, MONTHLY_FEE]);
 
-  // Loading state
   if (isLoading) {
     return (
       <section className="cash-page">
         <div className="cash-loading">
           <div className="loading-spinner"></div>
-          <p>Loading data...</p>
+          <p>{t('loadingData')}</p>
         </div>
       </section>
     )
@@ -499,21 +562,20 @@ export default function Cash() {
 
   return (
     <section className="cash-page">
-      {/* Header */}
       <div className="cash-header">
         <div className="cash-header-content">
           <h1>
             <Wallet size={28} />
-            Cash Fund
+            {t('cashFund')}
           </h1>
-          <p>Manage member cash payments and expenses</p>
+          <p>{t('managePaymentsExpenses')}</p>
         </div>
         <div className="cash-actions">
           {['bendahara', 'ketua', 'sekretaris', 'wakilketua'].includes(userRole?.toLowerCase()) && (
             <>
               <button className="btn" onClick={() => setShowExpenseModal(true)}>
                 <MinusCircle size={16} />
-                Add Expense
+                {t('addExpense')}
               </button>
               <button
                 className={`btn ${pendingPayments.length > 0 ? 'primary' : ''}`}
@@ -526,15 +588,14 @@ export default function Cash() {
           )}
           <button className="btn primary" onClick={() => setShowQris(true)}>
             <QrCode size={16} />
-            Pay Cash
+            {t('payCash')}
           </button>
         </div>
       </div>
 
-      {/* Stats */}
       <div className="cash-stats">
         <StatCard
-          title="Total Cash In"
+          title={t('totalCashIn')}
           value={totalIncome}
           icon={TrendingUp}
           variant="green"
@@ -542,7 +603,7 @@ export default function Cash() {
           trendValue="+12%"
         />
         <StatCard
-          title="Total Expenses"
+          title={t('totalExpenses')}
           value={totalExpenses}
           icon={TrendingDown}
           variant="red"
@@ -550,29 +611,37 @@ export default function Cash() {
           trendValue="-5%"
         />
         <StatCard
-          title="Current Balance"
+          title={t('currentBalance')}
           value={balance}
           icon={Wallet}
           variant="blue"
         />
       </div>
 
-      {/* Main Content */}
       <div className="cash-main">
         <div className="cash-left">
-          {/* Payment Table */}
           <div className="payment-table-card">
             <div className="table-header">
-              <h3>
-                <Users size={18} />
-                Cash Payment Table
-              </h3>
-            </div>
+                <h3>
+                  <Users size={18} />
+                  {t('cashPaymentTable')}
+                </h3>
+                {userRole === 'bendahara' && (
+                  <div className="table-search">
+                    <input
+                      type="search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={t('Search Members') || 'Search members'}
+                    />
+                  </div>
+                )}
+              </div>
             <div className="table-wrap">
               <table className="kas-table">
                 <thead>
                   <tr>
-                    <th>Member</th>
+                    <th>{t('member')}</th>
                     {months.map((m, i) => (
                       <th key={m} title={monthsFull[i]} className={i === currentMonthIdx ? 'current-month' : ''}>
                         {m}
@@ -601,7 +670,7 @@ export default function Cash() {
             <div className="expense-section">
               <h3 className="section-title">
                 <Receipt size={18} />
-                Expense List
+                {t('expenseList')}
               </h3>
               <div className="expense-list">
                 {expenses.map((exp) => (
@@ -609,7 +678,7 @@ export default function Cash() {
                     <div className="expense-info">
                       <span className="expense-desc">{exp.desc}</span>
                       <span className="expense-meta">
-                        {new Date(exp.tanggal).toLocaleDateString('en-US')} • {exp.user}
+                        {new Date(exp.tanggal).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US')} • {exp.user}
                       </span>
                     </div>
                     <div className="expense-amount">
@@ -625,14 +694,13 @@ export default function Cash() {
           )}
         </div>
 
-        {/* Sidebar - Leaderboard */}
         <div className="cash-right">
           <div className="leaderboard-card">
             <div className="leaderboard-header">
               <Trophy size={18} className="trophy-icon" />
               <h3>Leaderboard</h3>
             </div>
-            <p className="leaderboard-subtitle">Top 5 members with most payments</p>
+            <p className="leaderboard-subtitle">{t('topMembersPayments')}</p>
             <ul className="leaderboard-list">
               {leaderboard.map((m, idx) => (
                 <LeaderboardItem
@@ -640,6 +708,7 @@ export default function Cash() {
                   member={m}
                   rank={idx + 1}
                   paidCount={m.paid}
+                  t={t}
                 />
               ))}
             </ul>
@@ -647,17 +716,16 @@ export default function Cash() {
         </div>
       </div>
 
-      {/* QRIS Modal */}
       {showQris && (
         <div className="modal-overlay" onClick={() => setShowQris(false)}>
           <div className="modal-content qris-modal" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowQris(false)}>
               <X size={18} />
             </button>
-            <h3>Cash Payment</h3>
+            <h3>{t('cashPayment')}</h3>
             <div className="qris-image">
               <QrCode size={120} />
-              <p>Scan QRIS to pay</p>
+              <p>{t('scanQRIS')}</p>
             </div>
             <div className="payment-form">
               <label>Select Month:</label>

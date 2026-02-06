@@ -2,7 +2,6 @@ import Pengeluaran from "../Models/ModelPengeluaran.js";
 import Users from "../Models/ModelUser.js";
 import { createAuditLog } from "../Models/ModelAuditLog.js";
 
-// Get all pengeluaran
 export const getPengeluaran = async (req, res) => {
     try {
         const response = await Pengeluaran.findAll({
@@ -20,7 +19,6 @@ export const getPengeluaran = async (req, res) => {
     }
 };
 
-// Create pengeluaran (only bendahara)
 export const createPengeluaran = async (req, res) => {
     try {
         const role = req.role;
@@ -41,7 +39,6 @@ export const createPengeluaran = async (req, res) => {
             tanggal: new Date()
         });
         
-        // Create audit log
         await createAuditLog(
             'expense_created',
             `Pengeluaran sebesar Rp ${parseInt(jumlah).toLocaleString('id-ID')} untuk "${deskripsi}"`,
@@ -56,7 +53,6 @@ export const createPengeluaran = async (req, res) => {
     }
 };
 
-// Delete pengeluaran (only bendahara)
 export const deletePengeluaran = async (req, res) => {
     try {
         const role = req.role;
@@ -78,7 +74,6 @@ export const deletePengeluaran = async (req, res) => {
             where: { id: id }
         });
         
-        // Create audit log
         await createAuditLog(
             'expense_deleted',
             `Pengeluaran "${deletedDesc}" (Rp ${deletedAmount.toLocaleString('id-ID')}) telah dihapus`,
@@ -93,23 +88,19 @@ export const deletePengeluaran = async (req, res) => {
     }
 };
 
-// Get summary statistics
 export const getKasSummary = async (req, res) => {
     try {
         const Kas = (await import("../Models/ModelKas.js")).default;
 
-        // Get total income (accepted kas)
         const kasData = await Kas.findAll({
             where: { Status: 'diterima' }
         });
 
         const totalIncome = kasData.reduce((sum, k) => sum + parseInt(k.jumlah || 0), 0);
 
-        // Get total expenses
         const expenseData = await Pengeluaran.findAll();
         const totalExpense = expenseData.reduce((sum, e) => sum + parseInt(e.jumlah || 0), 0);
 
-        // Calculate balance
         const balance = totalIncome - totalExpense;
 
         res.status(200).json({
