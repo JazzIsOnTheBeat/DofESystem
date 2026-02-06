@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useContext, useCallback, memo } from 'react'
 import '../styles/cash.css'
+import { useLanguage } from '../context/LanguageContext'
 import {
   CircleCheckBig,
   Wallet,
@@ -520,7 +521,7 @@ export default function Cash() {
                 onClick={() => setShowVerificationModal(true)}
               >
                 <AlertCircle size={16} />
-                Verifikasi {pendingPayments.length > 0 && `(${pendingPayments.length})`}
+                Verification {pendingPayments.length > 0 && `(${pendingPayments.length})`}
               </button>
             </>
           )}
