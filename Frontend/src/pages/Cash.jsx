@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useContext, useCallback, memo } from 'react'
 import '../styles/cash.css'
 import {
+  CircleCheckBig,
   Wallet,
   TrendingUp,
   TrendingDown,
@@ -22,11 +23,13 @@ import {
   XCircle,
   MinusCircle,
   Trash2,
-  Users
+  Users,
+  ChevronDown,
+  ExternalLink
 } from 'lucide-react'
 import { axiosPrivate } from '../api/axios'
 import { AuthContext } from '../context/AuthProvider'
-import { useLanguage } from '../context/LanguageContext'
+import { ToastContext } from '../context/ToastContext'
 
 const months = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
@@ -80,8 +83,8 @@ const LeaderboardItem = memo(function LeaderboardItem({ member, rank, paidCount,
         <strong>{member.nama}</strong>
         <div className="member-meta">
           <span className="payment-count">
-            <CheckCircle2 size={10} />
-            {paidCount} {t('months')}
+            <CircleCheckBig size={10} />
+            {paidCount} months
           </span>
           <span className="payment-amount">
             Rp {(paidCount * 10000).toLocaleString('en-US')}
@@ -91,6 +94,93 @@ const LeaderboardItem = memo(function LeaderboardItem({ member, rank, paidCount,
     </li>
   )
 })
+
+const PaymentTableCell = memo(function PaymentTableCell({
+  monthIdx,
+  paymentData,
+  memberName,
+  currentMonthIdx,
+  userRole,
+  onToggle
+}) {
+  const status = paymentData ? paymentData.status : null;
+  const isPending = status === 'pending';
+  const isPaid = status === 'diterima';
+  const isRejected = status === 'ditolak';
+  const isCurrentMonth = monthIdx === currentMonthIdx;
+
+  let tooltip = `${memberName} — ${monthsFull[monthIdx]}`;
+  if (isPending) tooltip += " (Waiting Verification)";
+  if (isPaid) tooltip += " (Paid)";
+  if (isRejected) tooltip += " (Rejected)";
+
+  return (
+    <td className={isCurrentMonth ? 'current-month-cell' : ''}>
+      <div
+        className={`chk-wrap ${(['bendahara', 'ketua', 'sekretaris', 'wakilketua'].includes(userRole?.toLowerCase())) ? 'cursor-pointer' : ''}`}
+        onClick={() => onToggle(monthIdx)}
+        title={tooltip}
+      >
+        {isPaid ? (
+          <CircleCheckBig size={26} className="status-icon paid" />
+        ) : isPending ? (
+          <MinusCircle size={26} className="status-icon pending" />
+        ) : isRejected ? (
+          <XCircle size={26} className="status-icon rejected" />
+        ) : (
+          <div className="chk-circle"></div>
+        )}
+      </div>
+    </td>
+  );
+});
+
+const PaymentTableRow = memo(function PaymentTableRow({
+  member,
+  payments,
+  currentMonthIdx,
+  userRole,
+  onToggle
+}) {
+  const userPayments = useMemo(() => payments || new Map(), [payments]);
+
+  return (
+    <tr className={['bendahara', 'ketua', 'sekretaris', 'wakilketua'].includes(member.role?.toLowerCase()) ? 'row-bendahara' : ''}>
+      <td>
+        <div className="member-name">
+          <div className="member-avatar">{String(member.nama || '')[0] || '?'}</div>
+          <div className="member-info">
+            <div className="member-main">
+              <span className="name-text">{member.nama}</span>
+              {['bendahara', 'ketua', 'sekretaris', 'wakilketua'].includes(member.role?.toLowerCase()) && (
+                <span className="badge accent-1">
+                  <Sparkles size={8} />
+                  <p>
+                    {member.role === 'ketua' ? 'Chairman' :
+                      member.role === 'sekretaris' ? 'Secretary' :
+                        member.role === 'wakilKetua' ? 'Vice Chairman' :
+                          'Treasurer'}
+                  </p>
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </td>
+      {months.map((mm, monthIdx) => (
+        <PaymentTableCell
+          key={mm}
+          monthIdx={monthIdx}
+          paymentData={userPayments.get(monthIdx)}
+          memberName={member.nama}
+          currentMonthIdx={currentMonthIdx}
+          userRole={userRole}
+          onToggle={(idx) => onToggle(member, idx)}
+        />
+      ))}
+    </tr>
+  );
+});
 
 export default function Cash() {
   const [members, setMembers] = useState([])
@@ -102,17 +192,20 @@ export default function Cash() {
   const [showQris, setShowQris] = useState(false)
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showVerificationModal, setShowVerificationModal] = useState(false)
+  const [showProofModal, setShowProofModal] = useState(false)
+  const [activeProofUrl, setActiveProofUrl] = useState('')
 
   const [newExpense, setNewExpense] = useState({ amount: '', desc: '' })
   const [selectedMember, setSelectedMember] = useState(null)
   const [paymentFile, setPaymentFile] = useState(null)
   const [paymentMonth, setPaymentMonth] = useState(new Date().getMonth())
+  const [isMonthSelectOpen, setIsMonthSelectOpen] = useState(false)
 
   const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [isUploading, setIsUploading] = useState(false)
 
   const { accessToken, isLoading: authLoading } = useContext(AuthContext);
-  const { t, formatRole, getMonthsArray, language } = useLanguage();
+  const { showToast } = useContext(ToastContext);
 
   const userInfo = useMemo(() => {
     if (!accessToken) return { role: 'anggota', id: 0, nama: '' };
@@ -135,7 +228,9 @@ export default function Cash() {
   const loadData = useCallback(async () => {
     setIsLoading(true)
 
-    const kasEndpoint = userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua' ? '/kas/staff' : '/kas/my';
+    const normalizedRole = userRole?.toLowerCase();
+    const authorizedRoles = ['bendahara', 'ketua', 'sekretaris', 'wakilketua'];
+    const kasEndpoint = authorizedRoles.includes(normalizedRole) ? '/kas/staff' : '/kas/my';
 
     try {
       const usersRes = await axiosPrivate.get('/users');
@@ -219,8 +314,12 @@ export default function Cash() {
   }, [pendingPayments.length, showVerificationModal]);
 
   const handleUploadPayment = useCallback(async () => {
-    if (!paymentFile) return alert(t('selectPaymentProof'));
+    if (!paymentFile) {
+      showToast("Please select payment proof!", "warning");
+      return;
+    }
 
+    setIsUploading(true);
     const formData = new FormData();
     formData.append("userId", userId);
     formData.append("jumlah", MONTHLY_FEE);
@@ -231,29 +330,16 @@ export default function Cash() {
       const response = await axiosPrivate.post('/kas', formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      
-      const newPayment = response.data?.data;
-      setPayments(prev => {
-        const newPayments = { ...prev };
-        const userMap = new Map(newPayments[userId] || []);
-        userMap.set(paymentMonth, {
-          id: newPayment?.id || Date.now(),
-          status: 'pending',
-          bukti: newPayment?.bukti || null,
-          pending: true
-        });
-        newPayments[userId] = userMap;
-        return newPayments;
-      });
-      
-      alert(t('paymentProofSubmitted'));
+      showToast("Payment proof submitted successfully! Waiting for Treasurer confirmation.", "success");
       setShowQris(false);
       setPaymentFile(null);
     } catch (err) {
       console.error(err);
-      alert(t('failedSubmitProof'));
+      showToast("Failed to submit payment proof.", "error");
+    } finally {
+      setIsUploading(false);
     }
-  }, [paymentFile, userId, paymentMonth, t, MONTHLY_FEE]);
+  }, [paymentFile, userId, paymentMonth, loadData, showToast]);
 
   const handleVerifyPayment = useCallback(async (id, status) => {
     const paymentToVerify = pendingPayments.find(p => p.id === id);
@@ -263,48 +349,13 @@ export default function Cash() {
         Status: status,
         catatan: status === 'diterima' ? t('paid') : 'Invalid proof'
       });
-      
-      setPendingPayments(prev => prev.filter(p => p.id !== id));
-      
-      if (paymentToVerify) {
-        const monthStr = (paymentToVerify.bulan || '').substring(0, 3);
-        const monthIdx = months.indexOf(monthStr);
-        const memberId = paymentToVerify.userId;
-        
-        if (status === 'diterima') {
-          setPayments(prev => {
-            const newPayments = { ...prev };
-            const userMap = new Map(newPayments[memberId] || []);
-            userMap.set(monthIdx, {
-              id: id,
-              status: 'diterima',
-              bukti: paymentToVerify.bukti,
-              pending: false
-            });
-            newPayments[memberId] = userMap;
-            return newPayments;
-          });
-          
-          setSummary(prev => ({
-            ...prev,
-            totalIncome: prev.totalIncome + parseInt(paymentToVerify.jumlah || MONTHLY_FEE),
-            balance: prev.balance + parseInt(paymentToVerify.jumlah || MONTHLY_FEE)
-          }));
-        } else {
-          setPayments(prev => {
-            const newPayments = { ...prev };
-            const userMap = new Map(newPayments[memberId] || []);
-            userMap.delete(monthIdx);
-            newPayments[memberId] = userMap;
-            return newPayments;
-          });
-        }
-      }
+      showToast(`Payment ${status === 'diterima' ? 'accepted' : 'rejected'} successfully!`, "success");
+      loadData();
     } catch (err) {
       console.error(err);
-      alert(t('failedProcessVerification'));
+      showToast("Failed to process verification.", "error");
     }
-  }, [t, pendingPayments, MONTHLY_FEE]);
+  }, [loadData, showToast]);
 
   const totalIncome = summary.totalIncome;
   const totalExpenses = summary.totalExpense;
@@ -394,24 +445,51 @@ export default function Cash() {
   }, [members, payments])
 
   const visibleMembers = useMemo(() => {
-    const isStaff = (userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua')
-    let base = isStaff ? members : members.filter(m => m.id === userId)
-
-    const q = (searchQuery || '').trim().toLowerCase()
-    if (!q) return base
-
-    return base.filter(m => {
-      const name = (m.nama || '').toLowerCase()
-      const email = (m.email || '').toLowerCase()
-      const idstr = String(m.id || '')
-      return name.includes(q) || email.includes(q) || idstr.includes(q)
-    })
-  }, [members, userRole, userId, searchQuery])
+    const normalizedRole = userRole?.toLowerCase();
+    const authorizedRoles = ['bendahara', 'ketua', 'sekretaris', 'wakilketua'];
+    if (authorizedRoles.includes(normalizedRole)) return members;
+    return members.filter(m => m.id === userId)
+  }, [members, userRole, userId])
 
   const currentMonthIdx = useMemo(() => new Date().getMonth(), [])
 
+  // Logic for month selection in the payment form
+  const monthOptions = useMemo(() => {
+    const userPayments = payments[userId] || new Map();
+    return monthsFull.map((month, idx) => {
+      const paymentData = userPayments.get(idx);
+      const isPaid = paymentData?.status === 'diterima';
+      const isPending = paymentData?.status === 'pending';
+      return {
+        index: idx,
+        name: month,
+        isPaid,
+        isPending,
+        isDisabled: isPaid || isPending
+      };
+    });
+  }, [payments, userId])
+
+  const firstAvailableMonth = useMemo(() => {
+    return monthOptions.find(m => !m.isDisabled)?.index ?? 0;
+  }, [monthOptions]);
+
+  // Ensure paymentMonth is valid when modal opens
+  useEffect(() => {
+    if (showQris) {
+      const currentSelected = monthOptions.find(m => m.index === paymentMonth);
+      if (!currentSelected || currentSelected.isDisabled) {
+        setPaymentMonth(firstAvailableMonth);
+      }
+    }
+  }, [showQris, monthOptions, firstAvailableMonth, paymentMonth])
+
   const handleManualToggle = useCallback(async (member, monthIdx) => {
-    if (userRole !== 'bendahara') return;
+    const normalizedRole = userRole?.toLowerCase();
+    if (normalizedRole !== 'bendahara') {
+      showToast("Hanya Bendahara yang bisa mengubah status pembayaran manual.", "warning");
+      return;
+    }
 
     const userPayments = payments[member.id] || new Map();
     const paymentData = userPayments.get(monthIdx);
@@ -493,18 +571,19 @@ export default function Cash() {
           <p>{t('managePaymentsExpenses')}</p>
         </div>
         <div className="cash-actions">
-          {(userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua') && (
+          {['bendahara', 'ketua', 'sekretaris', 'wakilketua'].includes(userRole?.toLowerCase()) && (
             <>
               <button className="btn" onClick={() => setShowExpenseModal(true)}>
                 <MinusCircle size={16} />
                 {t('addExpense')}
               </button>
-              {pendingPayments.length > 0 && (
-                <button className="btn primary" onClick={() => setShowVerificationModal(true)}>
-                  <AlertCircle size={16} />
-                  {t('verification')} ({pendingPayments.length})
-                </button>
-              )}
+              <button
+                className={`btn ${pendingPayments.length > 0 ? 'primary' : ''}`}
+                onClick={() => setShowVerificationModal(true)}
+              >
+                <AlertCircle size={16} />
+                Verifikasi {pendingPayments.length > 0 && `(${pendingPayments.length})`}
+              </button>
             </>
           )}
           <button className="btn primary" onClick={() => setShowQris(true)}>
@@ -572,82 +651,22 @@ export default function Cash() {
                 </thead>
                 <tbody>
                   {visibleMembers.map((m) => (
-                    <tr key={m.id} className={m.role === 'bendahara' || m.role === 'ketua' || m.role === 'sekretaris' || m.role === 'wakilKetua' ? 'row-bendahara' : ''}>
-                      <td>
-                        <div className="member-name">
-                          <div className="member-avatar">{String(m.nama || '')[0] || '?'}</div>
-                          <div className="member-info">
-                            <div className="member-main">
-                              <span className="name-text">{m.nama}</span>
-                              {(m.role === 'bendahara' || m.role === 'ketua' || m.role === 'sekretaris' || m.role === 'wakilKetua') && (
-                                <span className="badge accent-1">
-                                  {m.role === 'ketua' ? (
-                                    <>
-                                      <Sparkles size={8} />
-                                      <p>{t('chairman')}</p>
-                                    </>
-                                  ) : m.role === 'sekretaris' ? (
-                                    <>
-                                      <Sparkles size={8} />
-                                      <p>{t('secretary')}</p>
-                                    </>
-                                  ) : m.role === 'wakilKetua' ? (
-                                    <>
-                                      <Sparkles size={8} />
-                                      <p>{t('viceChairman')}</p>
-                                    </>
-                                  ) : m.role === 'bendahara' ? (
-                                    <>
-                                      <Sparkles size={8} />
-                                      <p>{t('treasurer')}</p>
-                                    </>
-                                  ) : null}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      {months.map((mm, monthIdx) => {
-                        const userPayments = payments[m.id] || new Map();
-                        const paymentData = userPayments.get(monthIdx);
-                        const status = paymentData ? paymentData.status : null;
-                        const isPending = status === 'pending';
-                        const isPaid = status === 'diterima';
-                        const isCurrentMonth = monthIdx === currentMonthIdx;
-
-                        let tooltip = `${m.nama} — ${monthsFull[monthIdx]}`;
-                        if (isPending) tooltip += ` (${t('waitingVerification')})`;
-                        if (isPaid) tooltip += ` (${t('paid')})`;
-
-                        return (
-                          <td key={mm} className={isCurrentMonth ? 'current-month-cell' : ''}>
-                            <div
-                              className={`chk-wrap ${(userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua') ? 'cursor-pointer' : ''}`}
-                              onClick={() => handleManualToggle(m, monthIdx)}
-                              title={tooltip}
-                            >
-                              {isPaid ? (
-                                <div className="chk-circle checked"></div>
-                              ) : isPending ? (
-                                <div className="chk-circle pending">
-                                  <div className="pending-dot"></div>
-                                </div>
-                              ) : (
-                                <div className="chk-circle"></div>
-                              )}
-                            </div>
-                          </td>
-                        )
-                      })}
-                    </tr>
+                    <PaymentTableRow
+                      key={m.id}
+                      member={m}
+                      payments={payments[m.id]}
+                      currentMonthIdx={currentMonthIdx}
+                      userRole={userRole}
+                      onToggle={handleManualToggle}
+                    />
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {(userRole === 'bendahara' || userRole === 'ketua' || userRole === 'sekretaris' || userRole === 'wakilKetua') && expenses.length > 0 && (
+          {/* Expense List */}
+          {['bendahara', 'ketua', 'sekretaris', 'wakilketua'].includes(userRole?.toLowerCase()) && expenses.length > 0 && (
             <div className="expense-section">
               <h3 className="section-title">
                 <Receipt size={18} />
@@ -709,96 +728,207 @@ export default function Cash() {
               <p>{t('scanQRIS')}</p>
             </div>
             <div className="payment-form">
-              <label>{t('selectMonth')}</label>
-              <select value={paymentMonth} onChange={(e) => setPaymentMonth(Number(e.target.value))}>
-                {monthsFull.map((m, i) => (
-                  <option key={i} value={i}>{m}</option>
-                ))}
-              </select>
-              <label>{t('uploadPaymentProof')}</label>
-              <input type="file" accept="image/*" onChange={(e) => setPaymentFile(e.target.files[0])} />
-              <button className="btn primary" onClick={handleUploadPayment} style={{ marginTop: '8px' }}>
-                <Upload size={16} />
-                {t('submitProof')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showExpenseModal && (
-        <div className="modal-overlay" onClick={() => setShowExpenseModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowExpenseModal(false)}>
-              <X size={18} />
-            </button>
-            <h3>{t('addExpense')}</h3>
-            <div className="expense-form">
-              <label>{t('description')}</label>
-              <input
-                type="text"
-                placeholder="Example: Office supplies"
-                value={newExpense.desc}
-                onChange={(e) => setNewExpense({ ...newExpense, desc: e.target.value })}
-              />
-              <label>{t('amount')}</label>
-              <input
-                type="number"
-                placeholder="Example: 10000"
-                value={newExpense.amount}
-                onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-              />
-              <button className="btn primary" onClick={addExpense} style={{ marginTop: '8px' }}>
-                <PlusCircle size={16} />
-                {t('addExpense')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showVerificationModal && (
-        <div className="modal-overlay" onClick={() => setShowVerificationModal(false)}>
-          <div className="modal-content verification-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowVerificationModal(false)}>
-              <X size={20} />
-            </button>
-            <h3>{t('paymentVerification')}</h3>
-            <div className="verification-list">
-              {pendingPayments.map((payment) => (
-                <div key={payment.id} className="verification-item">
-                  <div className="verification-info">
-                    <strong>{payment.memberName}</strong>
-                    <span>{payment.bulan} — Rp {parseInt(payment.jumlah).toLocaleString('en-US')}</span>
-                  </div>
-                  {payment.bukti && (
-                    <a href={payment.bukti} target="_blank" rel="noopener noreferrer" className="btn-view">
-                      <Eye size={14} />
-                      {t('viewProof')}
-                    </a>
-                  )}
-                  <div className="verification-actions">
-                    <button
-                      className="btn-accept"
-                      onClick={() => handleVerifyPayment(payment.id, 'diterima')}
-                    >
-                      <Check size={14} />
-                      {t('accept')}
-                    </button>
-                    <button
-                      className="btn-reject"
-                      onClick={() => handleVerifyPayment(payment.id, 'ditolak')}
-                    >
-                      <XCircle size={14} />
-                      {t('reject')}
-                    </button>
-                  </div>
+              <label>Select Month:</label>
+              <div className="custom-month-select">
+                <div
+                  className={`select-trigger ${isMonthSelectOpen ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMonthSelectOpen(!isMonthSelectOpen);
+                  }}
+                >
+                  <span>{monthOptions[paymentMonth]?.name || 'Select Month'}</span>
+                  <ChevronDown size={18} className={`chevron ${isMonthSelectOpen ? 'up' : ''}`} />
                 </div>
-              ))}
+
+                {isMonthSelectOpen && (
+                  <div className="select-dropdown glass-effect">
+                    {monthOptions.map((m) => (
+                      <div
+                        key={m.index}
+                        className={`select-option ${m.isDisabled ? 'disabled' : ''} ${paymentMonth === m.index ? 'selected' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!m.isDisabled) {
+                            setPaymentMonth(m.index);
+                            setIsMonthSelectOpen(false);
+                          }
+                        }}
+                      >
+                        <div className="option-content">
+                          <span className="month-name">{m.name}</span>
+                          {m.isPaid && (
+                            <div className="status-badge paid">
+                              <CircleCheckBig size={14} />
+                              <span>Paid</span>
+                            </div>
+                          )}
+                          {m.isPending && (
+                            <div className="status-badge pending">
+                              <MinusCircle size={14} />
+                              <span>Pending</span>
+                            </div>
+                          )}
+                        </div>
+                        {paymentMonth === m.index && !m.isDisabled && (
+                          <div className="selected-indicator"></div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <label>Upload Payment Proof:</label>
+              <div className="file-input-wrapper">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setPaymentFile(e.target.files[0])}
+                  disabled={!monthOptions.some(m => !m.isDisabled)}
+                />
+              </div>
+
+              <button
+                className="btn primary submit-payment-btn"
+                onClick={handleUploadPayment}
+                style={{ marginTop: '16px', width: '100%' }}
+                disabled={isUploading || !monthOptions.some(m => !m.isDisabled)}
+              >
+                {isUploading ? (
+                  <>
+                    <div className="btn-spinner"></div>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={16} />
+                    Submit Proof
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
       )}
-    </section>
+
+      {/* Expense Modal */}
+      {
+        showExpenseModal && (
+          <div className="modal-overlay" onClick={() => setShowExpenseModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close" onClick={() => setShowExpenseModal(false)}>
+                <X size={18} />
+              </button>
+              <h3>Add Expense</h3>
+              <div className="expense-form">
+                <label>Description:</label>
+                <input
+                  type="text"
+                  placeholder="Example: Office supplies"
+                  value={newExpense.desc}
+                  onChange={(e) => setNewExpense({ ...newExpense, desc: e.target.value })}
+                />
+                <label>Amount (Rp):</label>
+                <input
+                  type="number"
+                  placeholder="Example: 10000"
+                  value={newExpense.amount}
+                  onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                />
+                <button className="btn primary" onClick={addExpense} style={{ marginTop: '8px' }}>
+                  <PlusCircle size={16} />
+                  Add Expense
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Verification Modal */}
+      {
+        showVerificationModal && (
+          <div className="modal-overlay" onClick={() => setShowVerificationModal(false)}>
+            <div className="modal-content verification-modal" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close" onClick={() => setShowVerificationModal(false)}>
+                <X size={20} />
+              </button>
+              <h3>Payment Verification</h3>
+              <div className="verification-list">
+                {pendingPayments.length === 0 ? (
+                  <div className="empty-verification">
+                    <Receipt size={40} />
+                    <p>No pending payments to verify</p>
+                    <span>All submitted proofs have been processed.</span>
+                  </div>
+                ) : (
+                  pendingPayments.map((payment) => (
+                    <div key={payment.id} className="verification-item">
+                      <div className="verification-info">
+                        <strong>{payment.user?.nama || 'Unknown Member'}</strong>
+                        <span>{payment.bulan} — Rp {parseInt(payment.jumlah || 0).toLocaleString('en-US')}</span>
+                      </div>
+                      {payment.bukti && (
+                        <button
+                          className="btn-view"
+                          onClick={() => {
+                            setActiveProofUrl(payment.bukti);
+                            setShowProofModal(true);
+                          }}
+                        >
+                          <Eye size={14} />
+                          View Proof
+                        </button>
+                      )}
+                      {userRole?.toLowerCase() === 'bendahara' && (
+                        <div className="verification-actions">
+                          <button
+                            className="btn-accept"
+                            onClick={() => handleVerifyPayment(payment.id, 'diterima')}
+                          >
+                            <Check size={14} />
+                            Accept
+                          </button>
+                          <button
+                            className="btn-reject"
+                            onClick={() => handleVerifyPayment(payment.id, 'ditolak')}
+                          >
+                            <XCircle size={14} />
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Proof Preview Modal */}
+      {
+        showProofModal && (
+          <div className="modal-overlay proof-overlay" onClick={() => setShowProofModal(false)}>
+            <div className="modal-content proof-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="proof-container">
+                <button className="modal-close" onClick={() => setShowProofModal(false)}>
+                  <X size={20} />
+                </button>
+                <img src={activeProofUrl} alt="Payment Proof" className="proof-image" />
+                <div className="proof-actions-overlay">
+                  <a href={activeProofUrl} target="_blank" rel="noopener noreferrer" className="btn primary">
+                    <ExternalLink size={16} />
+                    Open Original
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </section >
   );
 }

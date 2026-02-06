@@ -6,13 +6,14 @@ import { Op } from "sequelize";
 
 export const Register = async (req, res) => {
     const { nama, nim, password, confPass, role } = req.body;
-    
+
+    // Check if user has permission (only pengurus can add members)
     const userRole = req.role;
     const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
     if (!pengurusRoles.includes(userRole)) {
         return res.status(403).json({ msg: "Akses ditolak. Hanya pengurus yang dapat menambahkan anggota." });
     }
-    
+
     if (!nama || !nim || !password) {
         return res.status(400).json({ msg: "Data wajib (nama, nim, password) tidak boleh kosong" });
     }
@@ -43,7 +44,8 @@ export const Register = async (req, res) => {
             password: hashPassword,
             role: role,
         });
-        
+
+        // Create audit log
         await createAuditLog(
             'user_created',
             `Anggota baru "${nama}" dengan NIM ${nim} telah didaftarkan`,
@@ -52,7 +54,7 @@ export const Register = async (req, res) => {
             null,
             nama
         );
-        
+
         res.json({ msg: 'Register Berhasil' })
     } catch (error) {
         console.log(error);
@@ -106,17 +108,20 @@ export const Login = async (req, res) => {
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000,
+            maxAge: 6 * 60 * 60 * 1000,
             sameSite: 'lax',
         });
 
+        // Store user role and id for frontend
+
+        // Create login audit log
         await createAuditLog(
             'login',
             `User ${nama} berhasil login ke sistem`,
             userId,
             nama
         );
-        
+
         res.json({
             accessToken,
             userId,
@@ -203,19 +208,19 @@ export const updateUser = async (req, res) => {
     try {
         const userRole = req.role;
         const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
-        
+
         if (!pengurusRoles.includes(userRole)) {
             return res.status(403).json({ msg: "Akses ditolak. Hanya pengurus yang dapat mengedit anggota." });
         }
-        
+
         const { id } = req.params;
         const { nama, nim, role, password } = req.body;
-        
+
         const user = await Users.findByPk(id);
         if (!user) {
             return res.status(404).json({ msg: "User tidak ditemukan" });
         }
-        
+
         const updateData = {};
         if (nama) updateData.nama = nama;
         if (nim) {
@@ -230,9 +235,10 @@ export const updateUser = async (req, res) => {
             const salt = await bcrypt.genSalt();
             updateData.password = await bcrypt.hash(password, salt);
         }
-        
+
         await Users.update(updateData, { where: { id } });
-        
+
+        // Create audit log
         await createAuditLog(
             'user_updated',
             `Data anggota "${user.nama}" telah diupdate`,
@@ -241,7 +247,7 @@ export const updateUser = async (req, res) => {
             parseInt(id),
             user.nama
         );
-        
+
         res.json({ msg: "Data anggota berhasil diperbarui" });
     } catch (error) {
         console.error('Update user error:', error);
@@ -253,26 +259,28 @@ export const deleteUser = async (req, res) => {
     try {
         const userRole = req.role;
         const pengurusRoles = ['ketua', 'wakilKetua', 'sekretaris', 'bendahara'];
-        
+
         if (!pengurusRoles.includes(userRole)) {
             return res.status(403).json({ msg: "Akses ditolak. Hanya pengurus yang dapat menghapus anggota." });
         }
-        
+
         const { id } = req.params;
-        
+
+        // Prevent deleting self
         if (parseInt(id) === req.userId) {
             return res.status(400).json({ msg: "Tidak dapat menghapus akun sendiri" });
         }
-        
+
         const user = await Users.findByPk(id);
         if (!user) {
             return res.status(404).json({ msg: "User tidak ditemukan" });
         }
-        
+
         const deletedUserName = user.nama;
-        
+
         await Users.destroy({ where: { id } });
-        
+
+        // Create audit log
         await createAuditLog(
             'user_deleted',
             `Anggota "${deletedUserName}" telah dihapus dari sistem`,
@@ -281,7 +289,7 @@ export const deleteUser = async (req, res) => {
             null,
             deletedUserName
         );
-        
+
         res.json({ msg: "Anggota berhasil dihapus" });
     } catch (error) {
         console.error('Delete user error:', error);
