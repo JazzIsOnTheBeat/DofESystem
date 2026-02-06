@@ -1,6 +1,7 @@
 import express from "express";
 import { Register, getUsers, Login, Logout, changePass, updateUser, deleteUser } from "../Controllers/User.js";
 import { refreshToken } from "../Controllers/RefreshToken.js";
+import { requestReset, resetPassword } from "../Controllers/PasswordReset.js";
 import { verifyToken } from "../Middleware/VerifyToken.js";
 import { getKas, getKasMy, postKas, statusKas, deleteKas, createManualKas } from "../Controllers/Kas.js";
 import { getPengeluaran, createPengeluaran, deletePengeluaran, getKasSummary } from "../Controllers/Pengeluaran.js";
@@ -15,6 +16,8 @@ router.patch("/users/:id", verifyToken, updateUser);
 router.delete("/users/:id", verifyToken, deleteUser);
 router.post("/login", Login);
 router.get("/refreshToken", refreshToken);
+router.post("/forgot-password", requestReset);
+router.post("/reset-password", resetPassword);
 router.patch("/NewPass", verifyToken, changePass)
 router.delete("/logout", Logout)
 

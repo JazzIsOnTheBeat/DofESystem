@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { ToastContext } from '../context/ToastContext'
 import { AuthContext } from '../context/AuthProvider'
 import '../styles/login.css'
@@ -69,6 +69,20 @@ export default function Login() {
               <button className="btn-primary full rounded-full" type="submit" disabled={loading}>
                 {loading ? 'Processing...' : 'Sign In'}
               </button>
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <Link
+                to="/forgot-password"
+                style={{
+                  color: 'var(--theme-text-muted)',
+                  fontSize: '0.85rem',
+                  textDecoration: 'none',
+                  fontWeight: '500'
+                }}
+              >
+                Forgot Password?
+              </Link>
             </div>
           </form>
         </main>
