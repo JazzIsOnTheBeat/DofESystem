@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useEffect, useState, useRef } from 'react'
 import axiosInstance, { axiosPrivate } from '../api/axios';
 
 export const AuthContext = createContext({
@@ -10,47 +10,68 @@ export const AuthContext = createContext({
   getAuthHeader: () => ({}),
 })
 
+// Module-level variables persist across re-renders and component instances
+let refreshPromise = null;
+
 export default function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null)
-  const [isLoading, setIsLoading] = useState(true) // Loading state for initial auth check
+  const [isLoading, setIsLoading] = useState(true)
+  const accessTokenRef = useRef(null);
 
-  // Try to refresh token on initial load
+  // Keep Ref in sync with state for interceptor access without re-registration
   useEffect(() => {
-    const initAuth = async () => {
-      const storedToken = localStorage.getItem('accessToken');
-      if (storedToken) {
-        // Try to refresh the token to validate session
-        try {
-          const response = await axiosInstance.get('/refreshToken');
-          const newToken = response.data.accessToken;
-          setAccessToken(newToken);
-          localStorage.setItem('accessToken', newToken);
-        } catch (err) {
-          // Refresh failed - clear invalid token
-          console.log('Token refresh failed on init, clearing...');
-          localStorage.removeItem('accessToken');
-          setAccessToken(null);
-        }
-      }
-      setIsLoading(false);
-    };
-    
-    initAuth();
-  }, []);
+    accessTokenRef.current = accessToken;
+  }, [accessToken]);
 
+  // Sync state between tabs
   useEffect(() => {
-    // keep localStorage and state in sync
-    const onStorage = () => setAccessToken(localStorage.getItem('accessToken'))
+    const onStorage = () => {
+      const token = localStorage.getItem('accessToken');
+      if (token !== accessToken) setAccessToken(token);
+    }
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
-  }, [])
+  }, [accessToken])
 
-  // Axios Interceptor for Refresh Token
+  // Centralized refresh function to be used by initAuth and interceptors
+  const refresh = useCallback(async () => {
+    if (refreshPromise) {
+      console.log('[Auth] Reusing existing refresh promise...');
+      return refreshPromise;
+    }
+
+    console.log('[Auth] Starting new refresh token request...');
+    refreshPromise = axiosInstance.get('/refreshToken')
+      .then(response => {
+        const newAccessToken = response.data.accessToken;
+        console.log('[Auth] Refresh succeeded, updating state');
+        setAccessToken(newAccessToken);
+        localStorage.setItem('accessToken', newAccessToken);
+        refreshPromise = null;
+        return newAccessToken;
+      })
+      .catch(err => {
+        console.error('[Auth] Refresh failed:', err.response?.status || err.message);
+        refreshPromise = null;
+        setAccessToken(null);
+        localStorage.removeItem('accessToken');
+        // Optional: window.location.href = '/login'; 
+        // We'll let the interceptor or RequireAuth handle the redirect
+        throw err;
+      });
+
+    return refreshPromise;
+  }, []);
+
+  // Sync interceptors ONCE on mount
   useEffect(() => {
+    console.log('[Auth] Registering stable Axios interceptors');
+
     const requestIntercept = axiosPrivate.interceptors.request.use(
       config => {
-        if (!config.headers['Authorization'] && accessToken) {
-          config.headers['Authorization'] = `Bearer ${accessToken}`;
+        const token = accessTokenRef.current;
+        if (!config.headers['Authorization'] && token) {
+          config.headers['Authorization'] = `Bearer ${token}`;
         }
         return config;
       }, (error) => Promise.reject(error)
@@ -61,23 +82,21 @@ export default function AuthProvider({ children }) {
       async (error) => {
         const prevRequest = error?.config;
         const status = error?.response?.status;
-        // Handle both 401 (Unauthorized) and 403 (Forbidden) for token refresh
+
+        // Check for 401 or 403 (backend sometimes returns 403 for expired tokens)
         if ((status === 401 || status === 403) && !prevRequest?.sent) {
+          console.log(`[Auth Interceptor] 401 detected for: ${prevRequest.url}`);
           prevRequest.sent = true;
+
           try {
-            const response = await axiosInstance.get('/refreshToken');
-            const newAccessToken = response.data.accessToken;
-            setAccessToken(newAccessToken);
-            localStorage.setItem('accessToken', newAccessToken);
-            prevRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+            const newToken = await refresh();
+            console.log(`[Auth Interceptor] Retrying: ${prevRequest.url}`);
+            prevRequest.headers['Authorization'] = `Bearer ${newToken}`;
             return axiosPrivate(prevRequest);
-          } catch (err) {
-            // Refresh failed - clear token and redirect to login
-            console.log('Session expired, redirecting to login...');
-            setAccessToken(null);
-            localStorage.removeItem('accessToken');
+          } catch (refreshErr) {
+            console.error('[Auth Interceptor] Refresh failed during retry, redirecting to login');
             window.location.href = '/login';
-            return Promise.reject(err);
+            return Promise.reject(refreshErr);
           }
         }
         return Promise.reject(error);
@@ -85,10 +104,29 @@ export default function AuthProvider({ children }) {
     );
 
     return () => {
+      console.log('[Auth] Cleaning up Axios interceptors');
       axiosPrivate.interceptors.request.eject(requestIntercept);
       axiosPrivate.interceptors.response.eject(responseIntercept);
     }
-  }, [accessToken])
+  }, [refresh]);
+
+  // Try to restore session on initial load
+  useEffect(() => {
+    const initAuth = async () => {
+      if (localStorage.getItem('accessToken')) {
+        console.log('[Auth] Found session in storage, initializing...');
+        try {
+          await refresh();
+          console.log('[Auth] Session initialized successfully');
+        } catch (err) {
+          console.warn('[Auth] Session initialization failed');
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
+  }, [refresh]);
 
 
   const login = useCallback(async ({ nim, password }) => {
@@ -127,10 +165,10 @@ export default function AuthProvider({ children }) {
   // Show loading while checking auth
   if (isLoading) {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        display: 'flex', 
-        alignItems: 'center', 
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
         background: 'var(--theme-bg-primary, #0f0f1a)',
         color: 'var(--theme-text-muted, #888)'

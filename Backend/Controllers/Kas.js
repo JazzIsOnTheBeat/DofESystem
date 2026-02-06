@@ -58,7 +58,7 @@ export const postKas = async (req, res) => {
         return res.status(400).json({ msg: "Data tidak boleh kosong" })
     }
 
-    const buktiUrl = `${req.protocol}://${req.get("host")}/public/images/${req.file.filename}`;
+    const buktiUrl = req.file.path;
 
     try {
 
@@ -98,9 +98,9 @@ export const statusKas = async (req, res) => {
             Status: Status,
             catatan: catatan,
         }, {
-            where: { id, id }
+            where: { id }
         });
-        
+
         // Get user info for audit log
         const user = await Users.findByPk(kas.userId);
         const actionType = Status === 'diterima' ? 'payment_verified' : 'payment_rejected';
