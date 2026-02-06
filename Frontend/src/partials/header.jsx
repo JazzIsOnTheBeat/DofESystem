@@ -19,11 +19,11 @@ const Header = memo(function Header() {
     // Route to Title Mapping
     const routeTitles = useMemo(() => ({
         '/': 'Home',
-        '/cash': 'Cash Management',
-        '/members': 'Member Management',
+        '/cash': 'Cash',
+        '/members': 'Members',
         '/settings': 'Settings',
         '/audit-logs': 'Audit Logs',
-        '/summary': 'Financial Summary',
+        '/summary': 'Summary',
         '/work-in-progress': 'Work In Progress',
         '/change-password': 'Change Password',
         '/forgot-password': 'Forgot Password',
