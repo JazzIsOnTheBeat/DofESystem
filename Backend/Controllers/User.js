@@ -189,6 +189,20 @@ export const changePass = async (req, res) => {
             return res.status(404).json({ msg: "User tidak ditemukan" });
         }
 
+        // Validation Criteria:
+        // 1. Min 8 characters
+        // 2. Alphanumeric only (letters and numbers)
+        // 3. No special characters
+        if (password.length < 8) {
+            return res.status(400).json({ msg: "Password must be at least 8 characters long" });
+        }
+
+        // Regex for alphanumeric only, ensuring at least one letter and one number
+        const alphanumericRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/;
+        if (!alphanumericRegex.test(password)) {
+            return res.status(400).json({ msg: "Password must be alphanumeric (letters and numbers only) with no special characters" });
+        }
+
         const salt = await bcrypt.genSalt();
         const hashPassword = await bcrypt.hash(password, salt)
 

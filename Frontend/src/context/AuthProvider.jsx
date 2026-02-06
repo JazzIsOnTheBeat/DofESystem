@@ -140,7 +140,16 @@ export default function AuthProvider({ children }) {
       if (token) {
         localStorage.setItem('accessToken', token)
         setAccessToken(token)
-        return { success: true }
+
+        // Check if the password used was "abcd"
+        const isDefault = password === 'abcd';
+        if (isDefault) {
+          localStorage.setItem('isDefaultPass', 'true');
+        } else {
+          localStorage.removeItem('isDefaultPass');
+        }
+
+        return { success: true, isDefaultPass: isDefault }
       }
       return { success: false, error: 'No token returned' }
     } catch (err) {
@@ -157,6 +166,7 @@ export default function AuthProvider({ children }) {
       console.error('logout error', err)
     }
     localStorage.removeItem('accessToken')
+    localStorage.removeItem('isDefaultPass')
     setAccessToken(null)
   }, [])
 
@@ -179,7 +189,15 @@ export default function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!accessToken, accessToken, isLoading, login, logout, getAuthHeader }}>
+    <AuthContext.Provider value={{
+      isAuthenticated: !!accessToken,
+      accessToken,
+      isLoading,
+      login,
+      logout,
+      getAuthHeader,
+      isDefaultPass: localStorage.getItem('isDefaultPass') === 'true'
+    }}>
       {children}
     </AuthContext.Provider>
   )

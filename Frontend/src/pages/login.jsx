@@ -24,7 +24,11 @@ export default function Login() {
         return
       }
       showToast('Login successful', 'success')
-      navigate('/')
+      if (result.isDefaultPass) {
+        navigate('/change-password')
+      } else {
+        navigate('/')
+      }
     } catch (err) {
       showToast('A network error occurred', 'error')
     } finally {
@@ -58,7 +62,7 @@ export default function Login() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required/>
+                required />
             </div>
 
             <div style={{ marginTop: 20 }}>

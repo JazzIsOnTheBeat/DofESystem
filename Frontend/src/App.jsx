@@ -12,17 +12,19 @@ import AuditLogs from './pages/AuditLogs';
 import NotFound from './pages/NotFound';
 import WorkInProgress from './pages/WorkInProgress';
 import Summary from './pages/Summary';
+import ChangePassword from './pages/ChangePassword';
 import RequireAuth from './components/RequireAuth';
 import RequirePengurus from './components/RequirePengurus';
 
 function App() {
-  const location = useLocation()
   const isLogin = location.pathname === '/login'
+  const isChangePass = location.pathname === '/change-password'
+  const hideLayout = isLogin || isChangePass;
   return (
-    <div className={`App ${isLogin ? 'no-sidebar' : ''}`}>
-      {!isLogin && <Sidebar />}
+    <div className={`App ${hideLayout ? 'no-sidebar' : ''}`}>
+      {!hideLayout && <Sidebar />}
       <div className="main-content">
-        {!isLogin && <Header />}
+        {!hideLayout && <Header />}
         <Routes>
           {/* Public Route */}
           <Route path="/login" element={<Login />} />
@@ -41,13 +43,14 @@ function App() {
           <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
           <Route path="/audit-logs" element={<RequirePengurus><AuditLogs /></RequirePengurus>} />
           <Route path="/summary" element={<RequireAuth><Summary /></RequireAuth>} />
+          <Route path="/change-password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
           <Route path="/work-in-progress" element={<RequireAuth><WorkInProgress /></RequireAuth>} />
-          
+
           {/* 404 Route - Must be last */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
-      {!isLogin && <Footer />}
+      {!hideLayout && <Footer />}
     </div>
   )
 }
