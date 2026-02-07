@@ -581,16 +581,19 @@ export default function Cash() {
                 <Users size={18} />
                 Payment List
               </h3>
-              <div className="members-search-wrapper">
-                <Search size={16} className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Search members..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="members-search-input"
-                />
-              </div>
+              {userRole?.toLowerCase() === 'bendahara' && (
+                <div className="members-search-wrapper">
+                  <Search size={16} className="search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search members..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="members-search-input"
+                  />
+                </div>
+              )}
+
             </div>
 
             <div className="table-wrap">

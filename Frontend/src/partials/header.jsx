@@ -111,17 +111,24 @@ const Header = memo(function Header() {
     const toggleNotif = useCallback((e) => {
         e.stopPropagation();
         setShowNotif(s => !s);
+        setShowProfile(false);
+        setShowMobileNav(false);
     }, []);
 
     const toggleProfile = useCallback((e) => {
         e.stopPropagation();
         setShowProfile(s => !s);
+        setShowNotif(false);
+        setShowMobileNav(false);
     }, []);
 
     const toggleMobileNav = useCallback((e) => {
         e.stopPropagation();
         setShowMobileNav(s => !s);
+        setShowNotif(false);
+        setShowProfile(false);
     }, []);
+
 
     return (
         <header className="header">
