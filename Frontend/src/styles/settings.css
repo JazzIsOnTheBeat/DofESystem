@@ -134,7 +134,7 @@ button.bg-gray-200:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10;
+    z-index: 2;
     transition: all var(--theme-transition-normal);
 }
 

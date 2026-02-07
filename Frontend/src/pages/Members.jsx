@@ -68,7 +68,7 @@ const MemberCard = memo(function MemberCard({ member, isCurrentUser, canManage, 
         {member.nim && (
           <div className="member-detail-item">
             <Mail size={14} />
-            <span>{member.nim}@satyaterrabhinneka.ac.id</span>
+            <span>{member.nim}@students.satyaterrabhinneka.ac.id</span>
           </div>
         )}
       </div>
