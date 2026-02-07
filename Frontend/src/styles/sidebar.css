@@ -169,8 +169,10 @@
 		justify-content: center;
 		padding: 12px;
 	}
+}
 
-	.nav-btn::before {
+@media (max-width: 600px) {
+	.sidebar {
 		display: none;
 	}
 }

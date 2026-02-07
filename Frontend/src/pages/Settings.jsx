@@ -40,33 +40,38 @@ const Settings = memo(function Settings() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 max-w-md transition-colors duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 max-w-md transition-colors duration-300 relative overflow-hidden group">
+        <div className="settings-overlay">
+          <div className="overlay-content">
+            <SettingsIcon className="animate-spin-slow" size={24} />
+            <span>Under Development</span>
+          </div>
+        </div>
         <h2 className="text-lg font-semibold mb-4 dark:text-gray-100">{t('language')}</h2>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between opacity-40 grayscale pointer-events-none">
           <span className="flex items-center gap-2 dark:text-gray-200">
             <Globe size={18} />
             {t('selectLanguage')}
           </span>
           <div className="flex gap-2">
             <button
-              onClick={() => handleLanguageChange('en')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                language === 'en' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-              }`}
+              disabled
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${language === 'en' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                }`}
             >
               English
             </button>
             <button
-              onClick={() => handleLanguageChange('id')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                language === 'id' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-              }`}
+              disabled
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${language === 'id' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                }`}
             >
               Indonesia
             </button>
           </div>
         </div>
       </div>
+
     </div>
   );
 });

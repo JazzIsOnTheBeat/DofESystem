@@ -334,6 +334,96 @@
 	color: var(--theme-accent-primary);
 }
 
+/* Mobile Menu Button */
+.mobile-menu-btn {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	background: var(--theme-glass);
+	border: 1px solid var(--theme-glass-border);
+	border-radius: var(--theme-radius-md);
+	color: var(--theme-text-primary);
+	cursor: pointer;
+	transition: all var(--theme-transition-fast);
+	padding: 0;
+}
+
+.mobile-menu-btn:hover {
+	background: var(--theme-glass-hover);
+	border-color: var(--theme-accent-primary);
+	color: var(--theme-accent-primary);
+}
+
+/* Mobile Nav Dropdown */
+.mobile-nav-dropdown {
+	position: absolute;
+	top: calc(var(--header-height, 64px) + 8px);
+	left: 16px;
+	right: 16px;
+	background: var(--theme-bg-secondary);
+	border-radius: var(--theme-radius-lg);
+	border: 1px solid var(--theme-glass-border);
+	box-shadow: var(--theme-shadow-lg);
+	z-index: 1000;
+	padding: 12px;
+	animation: slideDown 0.3s ease-out;
+	backdrop-filter: blur(12px);
+}
+
+.mobile-nav .nav-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.mobile-nav .nav-btn {
+	justify-content: flex-start;
+	padding: 14px 18px;
+	gap: 16px;
+	width: 100%;
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: var(--theme-radius-md);
+	color: var(--theme-text-secondary);
+	display: flex;
+	align-items: center;
+	transition: all var(--theme-transition-fast);
+}
+
+.mobile-nav .nav-btn.active {
+	background: var(--theme-glass-hover);
+	border-color: var(--theme-accent-primary);
+	color: var(--theme-text-primary);
+}
+
+.mobile-nav .nav-label {
+	display: block !important;
+	font-size: 1rem;
+	font-weight: 500;
+}
+
+.mobile-nav .nav-icon {
+	color: var(--theme-accent-primary);
+}
+
+
+@keyframes slideDown {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 /* Responsive */
 @media (max-width: 900px) {
 	.header {
@@ -353,5 +443,13 @@
 
 	.header h1 {
 		font-size: 0.9rem;
+	}
+
+	.mobile-menu-btn {
+		display: flex;
+	}
+
+	.breadcrumb-container {
+		display: none;
 	}
 }

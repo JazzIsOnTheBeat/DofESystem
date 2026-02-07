@@ -124,3 +124,64 @@ button.bg-gray-200:hover {
 .dark button.bg-gray-200:hover {
     background: rgba(255, 255, 255, 0.1);
 }
+
+/* Settings Overlay */
+.settings-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all var(--theme-transition-normal);
+}
+
+.dark .settings-overlay {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: var(--theme-bg-secondary);
+    border: 1px solid var(--theme-glass-border);
+    border-radius: var(--theme-radius-lg);
+    color: var(--theme-text-primary);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: var(--theme-shadow-lg);
+    animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-spin-slow {
+    animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

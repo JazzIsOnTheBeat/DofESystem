@@ -26,7 +26,8 @@ import {
   Trash2,
   Users,
   ChevronDown,
-  ExternalLink
+  ExternalLink,
+  Search
 } from 'lucide-react'
 import { axiosPrivate } from '../api/axios'
 import { AuthContext } from '../context/AuthProvider'
@@ -155,7 +156,6 @@ const PaymentTableRow = memo(function PaymentTableRow({
               <span className="name-text">{member.nama}</span>
               {['bendahara', 'ketua', 'sekretaris', 'wakilketua'].includes(member.role?.toLowerCase()) && (
                 <span className="badge accent-1">
-                  <Sparkles size={8} />
                   <p>
                     {member.role === 'ketua' ? 'Chairman' :
                       member.role === 'sekretaris' ? 'Secretary' :
@@ -189,6 +189,8 @@ export default function Cash() {
   const [pendingPayments, setPendingPayments] = useState([])
   const [expenses, setExpenses] = useState([])
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, balance: 0 })
+  const [searchQuery, setSearchQuery] = useState('')
+
 
   // Modals
   const [showQris, setShowQris] = useState(false)
@@ -400,9 +402,20 @@ export default function Cash() {
   const visibleMembers = useMemo(() => {
     const normalizedRole = userRole?.toLowerCase();
     const authorizedRoles = ['bendahara', 'ketua', 'sekretaris', 'wakilketua'];
-    if (authorizedRoles.includes(normalizedRole)) return members;
-    return members.filter(m => m.id === userId)
-  }, [members, userRole, userId])
+    let filtered = members;
+
+    if (!authorizedRoles.includes(normalizedRole)) {
+      filtered = members.filter(m => m.id === userId);
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(m => (m.nama || '').toLowerCase().includes(q));
+    }
+
+    return filtered;
+  }, [members, userRole, userId, searchQuery])
+
 
   const currentMonthIdx = useMemo(() => new Date().getMonth(), [])
 
@@ -566,9 +579,20 @@ export default function Cash() {
             <div className="table-header">
               <h3>
                 <Users size={18} />
-                Cash Payment Table
+                Payment List
               </h3>
+              <div className="members-search-wrapper">
+                <Search size={16} className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search members..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="members-search-input"
+                />
+              </div>
             </div>
+
             <div className="table-wrap">
               <table className="kas-table">
                 <thead>

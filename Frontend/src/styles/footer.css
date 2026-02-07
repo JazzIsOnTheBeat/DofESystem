@@ -46,10 +46,6 @@
 
 @media (max-width: 600px) {
     .footer {
-        left: 0;
-    }
-
-    .footer-meta {
         display: none;
     }
 }

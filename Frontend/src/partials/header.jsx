@@ -1,9 +1,10 @@
 import '../styles/header.css';
-import { Sparkles, Bell, User } from 'lucide-react';
+import { Sparkles, Bell, User, Menu, X } from 'lucide-react';
 import { useState, useRef, useEffect, useContext, useMemo, useCallback, memo } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import NotificationDropdown from '../components/NotificationDropdown';
 import ProfileDropdown from '../components/ProfileDropdown';
+import NavLinks from '../components/NavLinks';
 import { AuthContext } from '../context/AuthProvider';
 import { ChevronRight, Home as HomeIcon } from 'lucide-react'; // Added icons
 
@@ -11,8 +12,10 @@ const Header = memo(function Header() {
     const location = useLocation();
     const [showNotif, setShowNotif] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
+    const [showMobileNav, setShowMobileNav] = useState(false);
     const notifRef = useRef(null);
     const profileRef = useRef(null);
+    const mobileNavRef = useRef(null);
 
     const { accessToken } = useContext(AuthContext);
 
@@ -54,7 +57,6 @@ const Header = memo(function Header() {
     }, [location.pathname, routeTitles]);
 
     // Decode JWT to get user info
-    // ... (userInfo logic remains the same)
     const userInfo = useMemo(() => {
         if (!accessToken) return { nama: 'Guest', role: 'anggota' };
         try {
@@ -72,7 +74,6 @@ const Header = memo(function Header() {
     const userName = userInfo.nama || 'Guest';
     const userRole = userInfo.role || 'anggota';
 
-    // ... (formatRole, useEffect, toggleNotif, toggleProfile remains the same)
     // Format role for display
     const formatRole = useCallback((role) => {
         const roleMap = {
@@ -94,6 +95,9 @@ const Header = memo(function Header() {
             if (profileRef.current && !profileRef.current.contains(e.target)) {
                 setShowProfile(false);
             }
+            if (mobileNavRef.current && !mobileNavRef.current.contains(e.target)) {
+                setShowMobileNav(false);
+            }
         };
         document.addEventListener('click', onDocClick);
         return () => document.removeEventListener('click', onDocClick);
@@ -114,9 +118,26 @@ const Header = memo(function Header() {
         setShowProfile(s => !s);
     }, []);
 
+    const toggleMobileNav = useCallback((e) => {
+        e.stopPropagation();
+        setShowMobileNav(s => !s);
+    }, []);
+
     return (
         <header className="header">
             <div className="header-inner">
+                <button className="mobile-menu-btn" onClick={toggleMobileNav} aria-label="Toggle Menu">
+                    {showMobileNav ? <X size={24} /> : <Menu size={24} />}
+                </button>
+
+                {showMobileNav && (
+                    <div className="mobile-nav-dropdown" ref={mobileNavRef}>
+                        <nav className="mobile-nav">
+                            <NavLinks onItemClick={() => setShowMobileNav(false)} />
+                        </nav>
+                    </div>
+                )}
+
                 <nav className="breadcrumb-container" aria-label="Breadcrumb">
                     {breadcrumbs.map((crumb, index) => {
                         const isLast = index === breadcrumbs.length - 1;
